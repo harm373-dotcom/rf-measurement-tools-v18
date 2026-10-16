@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a111b">
-<title>RF Measurement Tools v1.8 — RF Power Meter / Frequency & MOD COD</title>
+<title>RF Measurement Tools v2.4 — RF Power Meter / Frequency & MOD COD / Sat Finder</title>
 <style>
   :root{color-scheme:dark; --bg:#080e17;--panel:#121b29;--panel2:#172334;--line:#2c3d50;--txt:#f0f6fa;--muted:#94a9bd;--soft:#cad7e4;--accent:#4de0c5;--gold:#ffcb62;--red:#ff5c61;--shadow:0 22px 62px #0005;}
   *{box-sizing:border-box}
@@ -408,23 +408,122 @@
 .rf18-pan-caption{margin-top:9px;display:flex;justify-content:space-between;gap:5px;color:#80a9c2;font-weight:800;font-size:10px}
 .rf18-pan-readout{margin-top:8px;color:#afcede;font:750 11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
 @media(max-width:540px){.rf18-pan-panel{padding:10px}.rf18-pan-head span{font-size:9px}.rf18-pan-layout{grid-template-columns:auto minmax(0,1fr) auto;gap:8px}.rf18-pan-layout button{padding:9px 11px}.rf18-pan-center{grid-column:1/-1;justify-self:stretch}.rf18-pan-caption{font-size:9px}}
-</style>
 
-<!-- PWA shell for canonical RF Measurement Tools v1.8. Engineering logic remains unchanged. -->
+
+/* v2.1 Sat Finder: simple third page, same design grammar, amber accents */
+.page-nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+.page-tile{padding:16px 17px;gap:10px}
+.page-logo{width:49px;height:49px;border-radius:13px}
+.page-logo svg{width:30px;height:30px}
+.nav-name{font-size:clamp(16px,2.0vw,27px)}
+#navSatfinder .page-logo{border-color:#b08751;background:linear-gradient(135deg,#4a3725,#302c31);color:#ffd59c}
+#navSatfinder .nav-eyebrow,#navSatfinder .nav-name em,#navSatfinder .tile-selected{color:#ffce95}
+#navSatfinder[aria-selected="true"]{border-color:#edb46c;background:linear-gradient(135deg,#3f312a,#1b2634);box-shadow:0 0 0 1px #e0a65e30,var(--shadow)}
+body.sat-theme{--accent:#ffcb86;--line:#725638;background:radial-gradient(ellipse 86% 63% at 10% -10%,#3c302d 0%,transparent 75%),radial-gradient(ellipse 77% 75% at 94% 105%,#283647 0%,transparent 76%),var(--bg)}
+body.sat-theme .dot{background:#ffc681;box-shadow:0 0 12px #eeb271}
+body.sat-theme .status{border-color:#805e3c;color:#f9e4cb;background:#44312470}
+.sat-area{--sa:#ffce94;--sa2:#e9ae68;--sl:#78583c;--spanel:#152032;color:#edf4fc}
+.sat-head{display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap;padding:23px 25px;border:1px solid #806141;border-radius:20px;background:linear-gradient(113deg,#3b302b,#152238 72%);box-shadow:var(--shadow);margin-bottom:17px}
+.sat-kicker{color:#eab47b;font-size:10px;letter-spacing:.18em;font-weight:900}
+.sat-head h2{font-size:clamp(27px,3vw,40px);margin:7px 0 7px;font-weight:900;letter-spacing:-.035em}
+.sat-head h2 span{color:var(--sa)}
+.sat-head p{color:#aec0cb;font-size:12px;line-height:1.65;margin:0}
+.sat-head-tag{border:1px solid #8f6a47;background:#62452c63;padding:10px 12px;border-radius:10px;color:#ffe1b7;letter-spacing:.09em;font-size:10px;font-weight:850}
+.sat-main{display:grid;grid-template-columns:minmax(260px,.91fr) minmax(0,1.09fr);gap:16px;align-items:stretch;margin-bottom:16px}
+.sat-panel,.sat-map-panel{border:1px solid #5d514a;border-radius:18px;background:linear-gradient(146deg,#1a2637ed,#111b2aef);box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.sat-panel-header{padding:15px 18px;border-bottom:1px solid #504947;background:linear-gradient(90deg,#46332980,#1b2a3a60);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sat-panel-header h3{font-size:13px;font-weight:850;letter-spacing:.065em;margin:0}
+.sat-pill{background:#573d2d;border:1px solid #ae8050;border-radius:9px;color:#ffddaf;padding:7px 10px;font-size:10px;font-weight:850;letter-spacing:.09em}
+.sat-panel-body{padding:18px}
+.sat-label{display:block;color:#b7c8d7;font-size:11px;font-weight:850;letter-spacing:.09em;margin-bottom:8px}
+.sat-search,.sat-input,.sat-select,.sat-api-key{width:100%;min-width:0;background:#0b1624;color:#fff;border:1px solid #465365;border-radius:11px;font:700 15px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;padding:12px 13px;outline:none}
+.sat-search:focus,.sat-input:focus,.sat-select:focus,.sat-api-key:focus{border-color:#ffcb86}
+.sat-input{font-size:20px;letter-spacing:-.045em;color:#ffdeb4}
+.sat-select{font-family:Inter,system-ui,sans-serif;font-size:13px;font-weight:700;min-height:47px}
+.sat-select option{background:#142238}
+.sat-control{margin-bottom:14px}
+.sat-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 11px}
+.sat-tabs button{background:#19293b;color:#b6c7d6;border:1px solid #3e5263;border-radius:8px;padding:10px 7px;font-size:11px;font-weight:850;cursor:pointer}
+.sat-tabs button[aria-pressed="true"]{background:#67432c;border-color:#c99254;color:#ffe5c0}
+.sat-shortline{font-size:11px;line-height:1.5;color:#a3b8c8;margin-top:7px}
+.sat-bad{color:#ffaaa5!important}
+.sat-fieldgrid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:end}
+.sat-action{border:1px solid #986d46;background:#62402b;color:#ffdab1;font-size:11px;font-weight:850;border-radius:10px;padding:15px 11px;cursor:pointer;white-space:nowrap}
+.sat-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.sat-metric{border:1px solid #3b4a5b;background:#101c2c;border-radius:12px;padding:16px 15px;min-width:0}
+.sat-metric span{display:block;color:#a6bacc;font-size:10px;font-weight:900;letter-spacing:.09em;margin-bottom:9px}
+.sat-metric strong{display:block;color:#ffe0b2;font-size:clamp(25px,2.6vw,39px);font-weight:900;letter-spacing:-.035em;white-space:nowrap}
+.sat-metric strong small{display:inline;font-size:clamp(12px,1.3vw,16px);color:#b9c4cc;font-weight:800;letter-spacing:0}
+.sat-metric small{color:#94aabd;font-size:10px;line-height:1.5;display:block;margin-top:6px}
+.sat-results-extra{border:1px solid #4d5361;background:#152334;border-radius:11px;padding:13px 14px;margin-top:11px;display:grid;grid-template-columns:1fr auto;gap:8px;font-size:12px;color:#abbfce}
+.sat-results-extra strong{color:#edf3fb}
+.sat-status{padding:13px 14px;margin-top:12px;border:1px solid #487763;border-radius:12px;background:#193b333c;color:#b7efd1;font-size:11px;line-height:1.6}
+.sat-status.warn{border-color:#b27a53;background:#49322277;color:#ffdaa9}
+  .sat-status.error{border-color:#b96163;background:#4a242877;color:#ffb9b5}
+  /* v2.4: visibility geometry and minimal user-selectable working elevation */
+  .sat-visibility{margin-top:12px;border:1px solid #425567;border-radius:12px;padding:11px 13px;background:#101e2d;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .sat-visibility-badge{font-size:11px;font-weight:850;color:#b6f1d6;letter-spacing:.02em;line-height:1.4}
+  .sat-visibility-badge.warn{color:#ffd09c}.sat-visibility-badge.error{color:#ffacae}
+  .sat-min-elevation{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px;color:#b6c9d6;font-weight:800;letter-spacing:.04em}
+  .sat-min-elevation input{min-width:0;width:66px;border:1px solid #586475;background:#0a1726;color:#ffdfb3;padding:8px 6px;border-radius:7px;font:800 15px ui-monospace,SFMono-Regular,Consolas,monospace;text-align:center;outline:none}
+  .sat-min-elevation input[aria-invalid="true"]{border-color:#ff8587}
+  .sat-min-elevation small{font-size:10px;color:#8da9bb}
+.sat-map-panel{margin-top:16px}
+.sat-map-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:17px 20px}
+.sat-map-top h3{margin:0;font-size:14px;letter-spacing:.08em}
+.sat-map-top p{margin:7px 0 0;font-size:11px;color:#9fbbcf;line-height:1.55}
+.sat-map-top .sat-pill{white-space:normal}
+#satMap{height:520px;width:100%;background:#162a3a;position:relative;overflow:hidden}
+.sat-map-placeholder{display:flex;align-items:center;justify-content:center;height:100%;padding:30px;color:#bed1dc;font-size:13px;line-height:1.8;text-align:center}
+.sat-map-foot{padding:13px 17px;border-top:1px solid #4b4c52;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#a6bece;font-size:11px;line-height:1.6}
+.sat-map-foot strong{color:#ffd8a5}
+.sat-map-foot a{color:#f3cd9f}
+.sat-options{padding:12px 19px 18px;border-top:1px solid #3c4756;color:#aebfcb;font-size:11px}
+.sat-options summary{color:#ffd6a7;cursor:pointer;font-weight:850}
+.sat-gmap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px}
+.sat-api-key{max-width:350px;flex:1;font-size:13px}
+.sat-explainer{font-size:11px;line-height:1.75;color:#9eb5c7;margin-top:12px}
+.sat-antenna-pin{width:33px;height:33px;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:12px;background:#553c28;border:2px solid #ffd39f;box-shadow:0 0 0 4px #f5b96244,0 3px 12px #000a;cursor:grab}
+.sat-eva-viewport{position:absolute;inset:0;width:100%;height:100%}
+.sat-ray-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:9;overflow:hidden}
+.sat-fallback{height:100%;display:flex;align-items:center;justify-content:center;gap:34px;flex-direction:column;padding:14px;background:radial-gradient(circle at center,#174149 0%,#102b3c 46%,#0c1d2d 100%)}
+.sat-fallback-schematic{width:min(64%,250px);aspect-ratio:1;flex-shrink:1;max-height:260px;filter:drop-shadow(0 0 13px #23e0ce2b)}
+.sat-fallback-caption{text-align:center;color:#cadce5;font-size:12px;line-height:1.65;max-width:480px}
+.sat-fallback-caption strong{display:block;color:#5cf0df;font-size:13px;letter-spacing:.08em;margin-bottom:4px}
+.sat-action-link{color:#79eade;text-decoration:underline;text-underline-offset:3px;font-weight:750}
+.sat-action-link:hover{color:#b6f8ec}
+.sat-map-cta{font-size:12px;color:#a6d6d2}
+.sat-eva-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 17px;border-top:1px solid #405064;background:#132333}
+.sat-eva-controls .sat-shortline{flex:1;min-width:185px;margin:0}
+.sat-eva-center{border-color:#3a9693;color:#9ffff1;background:#183c40}
+.sat-eva-controls button[hidden]{display:none}
+.sat-eva-legal{color:#87a5bb;font-size:10px;margin-top:5px}
+
+.sat-compass{position:absolute;z-index:450;top:16px;right:17px;border:1px solid #e5ad69;background:#142536df;border-radius:12px;padding:11px 13px;color:#ffdda9;box-shadow:0 4px 17px #0008;font-size:11px;font-weight:800;pointer-events:none}
+.sat-compass svg{vertical-align:middle;margin-right:4px}
+.sat-help{margin:14px 2px 3px;color:#9aafc0;font-size:11px;line-height:1.7}
+@media(max-width:1050px){.sat-main{grid-template-columns:1fr}.sat-metric strong{font-size:34px}}
+@media(max-width:850px){.page-tile{padding:11px;gap:8px}.page-logo{height:37px;width:37px}.page-logo svg{width:25px;height:25px}.nav-name{font-size:clamp(12px,2.5vw,19px)}.nav-eyebrow{font-size:8px;letter-spacing:.07em}}
+@media(max-width:600px){.page-nav{gap:7px}.page-tile{padding:10px 7px;border-radius:12px;align-items:start;gap:5px}.page-logo{display:none}.nav-name{font-size:clamp(10px,3vw,15px);line-height:1.2;letter-spacing:-.02em}.nav-arrow{display:none}.nav-eyebrow{font-size:6.4px}.tile-selected{font-size:7px;margin-top:6px}.sat-head{padding:17px 15px}.sat-head h2{font-size:29px}.sat-panel-body{padding:12px}.sat-results{gap:8px}.sat-metric{padding:12px 9px}.sat-metric span{font-size:9px}.sat-metric strong{font-size:clamp(20px,6vw,32px)}.sat-tabs button{font-size:10px}.sat-input{font-size:15px}.sat-action{font-size:10px;padding:13px 9px}#satMap{height:490px}.sat-map-top{padding:14px}.sat-map-foot{padding:13px}.sat-explainer{font-size:10px}}
+@media(max-width:365px){.nav-name{font-size:10px}.sat-metric strong{font-size:21px}}
+
+</style>
+<!-- PWA shell for canonical RF Measurement Tools v2.4. Engineering logic remains unchanged. -->
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="64x64" href="./icons/favicon-64.png">
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
 <meta name="application-name" content="RF Measurement Tools">
-<meta name="description" content="RF Power Meter и Frequency & MOD COD — автономная инженерная RF-лаборатория.">
+<meta name="description" content="RF Power Meter, Frequency & MOD COD и Sat Finder — инженерная RF-лаборатория.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="RF Tools">
 <meta name="mobile-web-app-capable" content="yes">
 
 <style>
-/* Minimal PWA-only presentation; original v1.8 CSS and calculations are preserved. */
+/* Minimal PWA-only presentation; original v2.4 CSS and calculations are preserved. */
 .app-status{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .pwa-install{border:1px solid #4d938d;background:linear-gradient(125deg,#183e45,#162b3d);border-radius:10px;color:#a9f8e8;padding:9px 13px;min-height:36px;font:800 11px/1.25 ui-sans-serif,system-ui,sans-serif;cursor:pointer;letter-spacing:.04em;white-space:nowrap}
+body.sat-theme .pwa-install{border-color:#d9a473;background:linear-gradient(125deg,#4d3221,#34281f);color:#ffce9d}
 body.mod-theme .pwa-install{border-color:#558db6;background:linear-gradient(125deg,#193750,#172d46);color:#9bdcff}
 .pwa-install:hover{filter:brightness(1.15)}
 .pwa-install:focus-visible,.pwa-dialog button:focus-visible{outline:2px solid #84d9ff;outline-offset:2px}
@@ -450,8 +549,12 @@ body.mod-theme .pwa-install{border-color:#558db6;background:linear-gradient(125d
         <div class="page-logo" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none"><path d="M4 29V8 M4 29h28 M8 23l6-9 7 4 10-13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="31" cy="5" r="2.3" fill="currentColor"/></svg></div>
         <div><div class="nav-eyebrow">SATELLITE SYSTEM TOOLS</div><div class="nav-name">FREQUENCY <em>&amp; MOD COD</em></div><div class="nav-note">DVB-S / S2 / S2X · Symbol Rate · Bandwidth</div><span class="tile-selected">● MODULATION / BITRATE</span></div><span class="nav-arrow" aria-hidden="true">↗</span>
       </button>
+      <button id="navSatfinder" class="page-tile" type="button" role="tab" aria-selected="false" aria-controls="pageSatfinder">
+        <div class="page-logo" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M7 9A22 22 0 0 0 31 33M9 31a24 24 0 0 0 22-22M15 25l10-10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="25" cy="15" r="4" stroke="currentColor" stroke-width="2.2"/><path d="M19 27l-3 7M14 34h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+        <div><div class="nav-eyebrow">SATELLITE ALIGNMENT</div><div class="nav-name">SAT <em>FINDER</em></div><div class="nav-note">Азимут · Elevation · Skew · Beacon</div><span class="tile-selected">● SATELLITE POINTING</span></div><span class="nav-arrow" aria-hidden="true">↗</span>
+      </button>
     </nav>
-    <div class="app-status"><button type="button" id="pwaInstall" class="pwa-install" aria-label="Установить веб-приложение на устройство">↧ УСТАНОВИТЬ</button><span class="status"><span class="dot"></span>RF ENGINEERING LAB · v1.8</span></div>
+    <div class="app-status"><button type="button" id="pwaInstall" class="pwa-install" aria-label="Установить веб-приложение на устройство">↧ УСТАНОВИТЬ</button><span class="status"><span class="dot"></span>RF ENGINEERING LAB · v2.4</span></div>
   </header>
   <div id="pagePower" role="tabpanel" aria-labelledby="navPower">
   <main class="main-grid">
@@ -746,7 +849,57 @@ body.mod-theme .pwa-install{border-color:#558db6;background:linear-gradient(125d
     </section>
   </section>
 
+  <section id="pageSatfinder" class="sat-area" role="tabpanel" aria-labelledby="navSatfinder" hidden>
+    <div class="sat-head"><div><div class="sat-kicker">RF MEASUREMENT TOOLS · SATELLITE ALIGNMENT</div><h2>SAT <span>FINDER</span></h2><p>Выберите спутник, укажите координаты станции — получите направления наведения и маяк.</p></div><div class="sat-head-tag">GEO LOOK ANGLES · TRUE NORTH</div></div>
+    <div class="sat-main">
+      <section class="sat-panel" aria-label="Исходные параметры Sat Finder">
+        <div class="sat-panel-header"><h3>01 · СПУТНИК И СТАНЦИЯ</h3><span class="sat-pill" id="satCount">КАТАЛОГ</span></div>
+        <div class="sat-panel-body">
+          <div class="sat-control"><label class="sat-label" for="satSearch">ПОИСК СПУТНИКА</label><input id="satSearch" class="sat-search" placeholder="Например: Express AMU1" autocomplete="off" aria-label="Поиск спутника"></div>
+          <div class="sat-tabs" role="group" aria-label="Орбитальный сектор"><button id="satSectorEast" type="button" aria-pressed="true">ВОСТОК · 30–72°E</button><button id="satSectorMiddle" type="button" aria-pressed="false">ЦЕНТР · 0–30°E</button><button id="satSectorWest" type="button" aria-pressed="false">ЗАПАД · 0–61°W</button></div>
+          <div class="sat-control"><label class="sat-label" for="satSelect">СПУТНИК / ОРБИТАЛЬНАЯ ПОЗИЦИЯ</label><select id="satSelect" class="sat-select"></select><div id="satSelectNote" class="sat-shortline">Выберите спутник из списка.</div></div>
+          <div class="sat-control"><label class="sat-label" for="satBeacon">BEACON / TELEMETRY</label><select id="satBeacon" class="sat-select"></select><div class="sat-shortline">Доступные записи из каталога. Видимость маяка зависит от диаграммы покрытия.</div></div>
+          <div class="sat-control"><label class="sat-label" for="satCoords">ПОЛОЖЕНИЕ СТАНЦИИ · WGS‑84</label><div class="sat-fieldgrid"><input id="satCoords" class="sat-input" type="text" value="56.147103, 37.762474" inputmode="text" spellcheck="false" aria-label="Координаты станции широта, долгота"><button type="button" class="sat-action" id="satGeo">МОЯ ПОЗИЦИЯ</button></div><div class="sat-shortline" id="satCoordsNote">Широта, долгота · десятичные градусы · север/восток со знаком +.</div></div>
+        </div>
+      </section>
+      <section class="sat-panel" aria-label="Параметры наведения">
+        <div class="sat-panel-header"><h3>02 · ПАРАМЕТРЫ НАВЕДЕНИЯ</h3><span class="sat-pill">РАСЧЁТ WGS‑84</span></div>
+        <div class="sat-panel-body"><div class="sat-results">
+          <div class="sat-metric"><span>АЗИМУТ · TRUE AZ</span><strong id="satAz">— <small>°</small></strong><small>От истинного севера по часовой стрелке</small></div>
+          <div class="sat-metric"><span>УГОЛ МЕСТА · ELEVATION</span><strong id="satEl">— <small>°</small></strong><small>От геометрического горизонта</small></div>
+          <div class="sat-metric"><span>ПОЛЯРИЗАЦИЯ · SKEW</span><strong id="satSkew">— <small>°</small></strong><small>Расчётный геометрический поворот</small></div>
+          <div class="sat-metric"><span>ЧАСТОТА МАЯКА · MHz</span><strong id="satFreq">— <small>MHz</small></strong><small id="satPol">Поляризация —</small></div>
+        </div><div class="sat-results-extra"><span>Расстояние до спутника по лучу</span><strong id="satRange">— km</strong></div><div class="sat-results-extra"><span>Позиция орбитального слота</span><strong id="satLongitude">—</strong></div>
+          <div class="sat-visibility" role="group" aria-label="Проверка видимости спутника">
+            <strong class="sat-visibility-badge" id="satVisibility" role="status">ВИДИМОСТЬ · —</strong>
+            <label class="sat-min-elevation" for="satMinElevation">МИН. РАБОЧИЙ УГОЛ <input id="satMinElevation" type="text" inputmode="decimal" value="5.00" aria-label="Минимальный рабочий угол места в градусах" autocomplete="off"><small>°</small></label>
+          </div><div id="satStatus" class="sat-status" role="status">Выберите спутник.</div></div>
+      </section>
+    </div>
+    <section class="sat-map-panel" aria-label="Интерактивная карта положения станции">
+      <div class="sat-map-top"><div><h3>03 · EVAMAPS · ANTENNA & BEAM</h3><p>Перетащите маркер 📡 на карте. Бирюзовая стрелка показывает истинный азимут до края обзора.</p></div><span class="sat-pill" id="satMapProvider">EVAMAPS · ЗАГРУЗКА</span></div>
+      <div id="satMap" aria-label="EvaMaps: карта станции и направления истинного азимута">
+        <div class="sat-fallback" id="satFallback">
+          <svg class="sat-fallback-schematic" viewBox="0 0 260 260" role="img" aria-label="Схематическое направление на спутник относительно севера">
+            <circle cx="130" cy="130" r="111" fill="#0d2635" stroke="#467c85" stroke-width="1.5"/>
+            <circle cx="130" cy="130" r="82" fill="none" stroke="#285567" stroke-width="1" stroke-dasharray="4 6"/>
+            <path d="M130 19V241M19 130H241" stroke="#376073" stroke-width="1" stroke-dasharray="4 7"/>
+            <text x="130" y="12" fill="#c5e9e6" text-anchor="middle" font-size="12" font-weight="700">N</text>
+            <g id="satFallbackArrow" transform="rotate(0 130 130)"><path d="M130 130 L130 25" stroke="#38e7d5" stroke-width="3.2" stroke-linecap="round"/><path d="M130 18 L121 39 L139 39 Z" fill="#38e7d5"/></g>
+            <circle cx="130" cy="130" r="17" fill="#543c30" stroke="#f0c58f" stroke-width="1.4"/>
+            <text x="130" y="136" text-anchor="middle" font-size="19">📡</text>
+          </svg>
+          <div class="sat-fallback-caption"><strong>СХЕМА АЗИМУТА · TRUE NORTH</strong>Карта EvaMaps загружается автоматически при наличии интернета. Настройка API-ключа не требуется.<div class="sat-eva-legal">Углы и выбор маяка работают даже без интернета.</div></div>
+        </div>
+      </div>
+      <div class="sat-map-foot"><span id="satMapCaption">📡 Станция · ➤ бирюзовая стрелка истинного азимута на поверхности</span><strong id="satMapHeading">TRUE AZ —</strong></div>
+      <div class="sat-eva-controls"><span id="satEvaNote" class="sat-shortline" role="status">Карта загружается автоматически при открытии вкладки. Интернет нужен только для подложки.</span><button type="button" id="satRetryEva" class="sat-action" hidden>ПОВТОРИТЬ ЗАГРУЗКУ</button><button type="button" id="satCenterEva" class="sat-action sat-eva-center">ЦЕНТР НА АНТЕННЕ</button></div>
+    </section>
+    <p class="sat-help">Азимут рассчитан относительно <strong>истинного севера</strong> (не магнитного). Проверка видимости геометрическая: не учитывает рельеф, строения, локальные препятствия и рефракцию. Skew — геометрический угол для линейной поляризации, не монтажная инструкция для конкретного облучателя; знак поворота зависит от точки наблюдения и конструкции. Круговая поляризация поворота LNB не требует. Линия на карте отображает <strong>направление азимута по земле</strong>, а не реальный ход радиолуча к GEO. Геометрия рассчитана для условной экваториальной GEO-позиции; для наклонных орбит нужны актуальные эфемериды. Источники каталога: <a href="https://frequencyplansatellites.altervista.org/Beacon-Telemetry_Europe-Africa-MiddleEast.html" target="_blank" rel="noopener noreferrer">Europe / Africa / Middle East</a> и <a href="https://frequencyplansatellites.altervista.org/Beacon-Telemetry_Atlantic.html" target="_blank" rel="noopener noreferrer">Atlantic</a> (данные источников, август и март 2026). Частоты справочные; могут меняться.</p>
+  </section>
+
 </div>
+
 <script>
 'use strict';
 (function(){
@@ -1694,33 +1847,330 @@ body.mod-theme .pwa-install{border-color:#558db6;background:linear-gradient(125d
     updateLocks();populateMods('QPSK','3/4');populateRoll('0.20');render();rf18CenterView();
   }
   $('modReset').addEventListener('click',setDefaults);
-  const pPower=$('pagePower'),pMod=$('pageModcod'),navPower=$('navPower'),navMod=$('navModcod');
+  const pPower=$('pagePower'),pMod=$('pageModcod'),pSat=$('pageSatfinder'),navPower=$('navPower'),navMod=$('navModcod'),navSat=$('navSatfinder');
   function choose(page,changeHash=false){
-    const mod=page==='modcod';pPower.hidden=mod;pMod.hidden=!mod;
-    navPower.setAttribute('aria-selected',String(!mod));navMod.setAttribute('aria-selected',String(mod));
-    document.body.classList.toggle('mod-theme',mod);
+    const mod=page==='modcod',sat=page==='satfinder';
+    pPower.hidden=mod||sat;pMod.hidden=!mod;pSat.hidden=!sat;
+    navPower.setAttribute('aria-selected',String(!mod&&!sat));navMod.setAttribute('aria-selected',String(mod));navSat.setAttribute('aria-selected',String(sat));
+    document.body.classList.toggle('mod-theme',mod);document.body.classList.toggle('sat-theme',sat);
     if(mod)requestAnimationFrame(()=>{if(!rf18Initialized)rf18CenterView();else rf18Sync();});
-    document.title=(mod?'Frequency & MOD COD':'RF Power Meter')+' · RF Measurement Tools v1.8';
-    if(changeHash){const newHash=mod?'#frequency-modcod':'#rf-power-meter';if(location.hash!==newHash)history.replaceState(null,'',newHash);}
+    if(sat)requestAnimationFrame(()=>window.satFinderShow?.());
+    document.title=(sat?'Sat Finder':mod?'Frequency & MOD COD':'RF Power Meter')+' · RF Measurement Tools v2.4';
+    if(changeHash){const newHash=sat?'#sat-finder':mod?'#frequency-modcod':'#rf-power-meter';if(location.hash!==newHash)history.replaceState(null,'',newHash);}
   }
+  const pageFromHash=()=>location.hash==='#sat-finder'?'satfinder':location.hash==='#frequency-modcod'?'modcod':'power';
   navPower.addEventListener('click',()=>choose('power',true));
   navMod.addEventListener('click',()=>choose('modcod',true));
-  window.addEventListener('hashchange',()=>choose(location.hash==='#frequency-modcod'?'modcod':'power'));
+  navSat.addEventListener('click',()=>choose('satfinder',true));
+  window.addEventListener('hashchange',()=>choose(pageFromHash()));
   setDefaults();
-  choose(location.hash==='#frequency-modcod'?'modcod':'power');
+  choose(pageFromHash());
 })();
 </script>
 
+<script>
 
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const raw="72.1|Intelsat 22|4196.75 V;4197.25 L;4197.75 L;11699.00 R;12499.00 L\n70.5|Eutelsat 70B|11199.50 H;11700.10 H;12500.00 V;12500.50 H\n70.0|Cosmos 2533 (Blagovest 13L)|3400.50 R\n68.5|Intelsat 36|3650.50 R;3652.00 L;3654.00 L;11200.50 R;12496.00 R\n68.5|Intelsat 20|3694.00 R;11198.00 R;11699.50 R;12749.00 R\n68.0|GSAT-N2 (GSAT 20)|4199.232 L;4199.5824 L\n66.5|TJS-2 (inclined orbit)|\n66.5|TJS-22 (inclined orbit)|\n66.0|Intelsat 17|3947.50 R;3950.00 V;3950.50 H;11198.00 R;11452.00 R;12502.00 R\n65.0|Amos 4|10703.00 L;11698.50 R;18750.00 L or R\n64.2|Intelsat 906 (inclined orbit)|3947.50 R;3950.00 V;3952.50 R;11198.00 R\n63.6|Thuraya 3 (inclined orbit)|\n63.4|EWS-G2 (GOES 15) (inclined orbit)|1694.00 R;2209.086 R\n63.0|COMSATBW 1|2218.7511 R or L;7678.50\n62.8|GSAT 7A|4186.848 L;4189.344 L;11202.00 V;11204.00 V\n62.6|Inmarsat 5F1|4199.00 V or L;4199.50 V or L;19700.50 L or R;19702.50 L or R\n62.5|TJS-20 (inclined orbit)|\n62.0|Luch 5X (Olimp K2)|3403.14 R\n62.0|Intelsat 39|3948.50 V or L;3949.00 V or L;3951.00 H;11699.50 R\n61.0|ABS 4 / Mobisat 1 (inclined orbit)|12201.00 V;12202.00 V\n59.7|Ovzon 3|10947.75 V or L;10949.25 V or L\n58.7|Beidou-2 G5 (inclined orbit)|\n58.5|KazSat 3|3400.25 L;3427.25;11199.50 R\n57.0|NSS 12|3948.00 R;3950.00 L;3952.00 R;11700.00 R\n56.5|Inmarsat 5F4|4199.00 V or L;4199.50 V or L;19700.50 L or R\n56.0|Express AT2|11705.00 V;11705.50 V;12497.00;12499.00\n55.0|IRNSS 1A (inclined orbit)|4194.00 L;4199.28 L\n55.0|IRNSS 1B (inclined orbit)|4191.84 L;4194.864 L\n55.0|IRNSS 1I (inclined orbit)|4188.768 L;4196.928 L\n55.0|GSAT 8 (inclined orbit)|4186.848 L;4195.776 L;11698.50 V\n55.0|GSAT 16|4186.32 L;4189.344 L;11698.00 H\n55.0|GSAT 29|4187.52 L;4197.504 L;12200.00 H or V;19701.50 H or V\n54.9|Yamal 402 (inclined orbit)|3401.00 L;3409.50 R;11459.50 R;12500.00 R\n53.0|Express AM6|3405.40 R;3850.00 R;3850.50 L;11199.50 R;18565.00 R\n52.8|Skynet 5D|2227.50 R;2252.50 R;2259.50 R;7492.20\n52.5|Yahsat 1A|4198.00 R or L;4199.00 R or L;11701.00 R;20201.00 L\n52.0|TurkmenAlem 52E / MonacoSat 1|11201.00 L or H;11449.00 L or V;11702.00 V;12498.00 H\n51.5|Belintersat 1|4194.00 R;4195.60 L;11194.00 V;11197.00 H;11445.00 H\n50.5|Eutelsat 50A (inclined orbit)|10950.20 H;11701.20 H;12500.50 V;12501.50 H\n50.0|Turksat 4B|11450.50 H;11698.60 R or V;11699.40 R or H\n49.0|Yamal 601|3447.65 R;4199.00 R or V or H;4199.90 R or V or H\n47.9|GSAT 31|4188.768 L;4196.928 L;10701.00 H\n47.9|GSAT 19|4186.848 L;4190.976 L;11443.50 H;11444.90 H\n47.7|Eutelsat Quantum|11200.20 V or R;11698.80 V;11699.80 H\n47.5|Yahsat 1B|3945.00 Circular;3946.00 Circular;20201.00 R;20202.00 L\n46.7|Syracuse 3A (inclined orbit)|7737.50\n46.0|AzerSpace 1 / Africasat 1A|4195.00 L;4196.30 L;10950.10 L\n45.6|MSG 2 (inclined orbit)|2245.50 R\n45.5|Syracuse 4A|2230.00 R or L;2231.20 R or L\n45.0|AzerSpace 2 / Intelsat 38|11703.00 R;12745.00 L or V;12747.00 R;12748.25 L or V\n45.0|Cosmos 2520 (Blagovest 11L)|3400.30 R;3700.00 R;3700.00 L\n44.2|Thuraya 4|20194.00;20197.00\n44.0|Thuraya 2 (inclined orbit)|3612.50 V;3614.50 V\n42.5|NigComSat 1R|3694.14 V or R;3696.84 H or L;12500.00 H\n42.0|Turksat 6A|11697.50 R or V;11700.50 R or H\n42.0|Turksat 3A|11120.00 H;11698.50 V;11699.50 H\n42.0|Turksat 4A|11701.50 V;12498.50 V or R;12499.50 H or R\n42.0|Turksat 5B|11452.60 H or R or L;11703.50 V or R or L;11704.50 R or L\n40.3|Shijian 20 (inclined orbit)|\n40.0|Express AM7|3800.00 R;3801.00 L;11699.00 H;11699.50 V\n39.0|Hellas Sat 3|3700.50 R;3701.00 R;4197.50 L;11450.00 H;11700.00 V\n39.0|Hellas Sat 4|3704.25 L;4199.00 R;11201.00 V;12499.00 H\n38.2|Paksat MM1|3946.50 H;4194.00 V;10700.00 V;10950.00 H\n37.8|Athena-Fidus|18424.00;20196.00 V\n36.0|Express AMU1 / Eutelsat 36C|11700.20 H or L;11702.50 H or R;12500.00 V;19690.00 H\n36.0|Eutelsat 36D|11701.80 L or H;11704.00 L or H;12501.00 R or V;12502.00 R or V\n35.5|TIBA-1|19698.00;19700.00\n35.0|Raduga-1M 3 (inclined orbit)|\n34.5|Badr 4 (inclined orbit)|12497.00 H;12499.00 V;12748.00 H\n34.0|Jam-E Jam 1|\n33.7|Hulianwan Gaogui 01|3703.00 V or R;4196.00 H or L\n33.5|Skynet 4C (inclined orbit)|2227.50 R;2252.50 R;7331.50\n33.1|Eutelsat 33F (inclined orbit)|11699.80 H;11701.00 H;12500.00 V\n32.5|IRNSS 1F (inclined orbit)|4198.56 L;4199.28 L\n30.9|Turksat 5A|10950.20 R or L or H;11698.60 L or R or V or H;11699.40\n30.5|Badr 5|11699.00 V;11699.20 H;12496.00 H;12498.00 V\n30.5|Arabsat 5A (inclined orbit)|3705.10 L;4191.00 R;10706.00 H;12749.00 V\n30.5|Arabsat 6A|11198.00 H or R;11199.00 V or L;11696.00 V;11698.00 H\n29.1|SpainSat NG-1 (inclined orbit)|2232.7602 L;2239.276 L\n28.5|Astra 2E|11453.50 V;11707.50 V or R;12493.00 H or L;18800.50\n28.2|Astra 2F|11452.00 V;11711.50 V or R;12491.00 H or L\n28.2|Astra 2G|11452.50 V;11710.50 V or R;12492.00 H or L;18800.00 V\n26.0|Badr 7|11200.50 H or L;11202.00 V or R;11703.00 H;11703.50 V\n26.0|Badr 8|4197.00 L;4198.00 R;11197.00 V or R;11202.50 H or L;12494.50 H\n25.8|Es'hail 2|10706.00 V or R;11205.00 H or R\n25.5|Es'hail 1|11199.80 H or R;11698.60 H or R;19699.00 H;20203.00 H\n25.1|Skynet 5B (inclined orbit)|2227.50 R;2252.50 R;2259.50 R\n24.8|AlphaSat (inclined orbit)|3949.00 L or R;3951.00 L or R;19701.00 V\n23.5|Astra 3B (inclined orbit)|11446.25 H;11446.75 H;11701.75 V;20199.00 V\n23.5|Astra 3C|11709.50 V or R;12490.00 H or L\n23.0|AngoSat 2|3401.125 R\n21.6|Eutelsat 21B|11200.20 H;11699.80 H;12500.00 H;12500.50 V\n21.5|SES 16 (GovSat 1)|7729.50 R;7748.50 R\n20.4|Tianlian 2-05 (inclined orbit)|\n20.0|Arabsat 5C|3704.10 L;4196.20 R;19534.00 R\n19.4|Astra 1M (inclined orbit)|10943.50 H;11708.50 V\n19.2|Astra 1N|11441.00 H;11453.00 V\n19.2|Astra 1P (SES-24)|10707.00 L;10708.00;10709.00 V or R;10951.00 V or R;11449.00 H or L\n19.0|Astra 1KR (inclined orbit)|11196.00 H;11703.00 V;11712.00 V\n18.3|TJS-14 (inclined orbit)|\n17.0|Amos 17|4199.20 V;4199.90 H;11449.00 H or L;11699.50 V or L;12500.50 V;12501.50 H\n16.8|Tianlian 1-05 (inclined orbit)|\n16.0|Eutelsat 16A|11200.80 H;11699.20 H;12500.00 H;21401.00 H\n13.2|COMSATBW 2|2218.7511 R or L;7676.50\n13.0|Eutelsat Hot Bird 13F|11701.70 H or R;11704.60 H or R;12500.00 H or L;12501.70 H or L\n13.0|Eutelsat Hot Bird 13G|11702.40 H or R;11705.30 H or R;12501.00 H or L;12502.40 H or L\n12.0|Cosmos 2539 (Blagovest 14L)|3400.80 R\n11.0|Inmarsat GX5|\n10.5|Tianlian 2-03 (inclined orbit)|\n10.2|Echostar 21 (inclined orbit)|18697.00 R;18699.00 R\n10.0|Eutelsat 10B|11698.60 H or R;11699.20 V or R;11701.60 R;11703.00 R;11704.00 R\n9.2|MSG 4 (inclined orbit)|2248.50 R\n9.0|Eutelsat Ka-Sat 9A|11700.40 H;11701.60 H;19680.00 H\n9.0|Eutelsat 9B|11701.20 H;11703.40;12498.00 H;12499.00 R\n7.2|Eutelsat Konnect|11701.60 H or R;11704.00 V or R\n7.0|Eutelsat 7C|11199.00 H or L;11200.60 H or L;11698.20 V or L;11699.00 V or L;12500.50 H\n7.0|Eutelsat 7B|11201.40 H;11698.60 H;12500.50 H;21402.00 H\n5.0|SES 5|3623.00 V;11698.25 H;11699.875 H;11700.25 V;11703.30 V\n4.8|Astra 4A|11702.50 V;12498.50 H;19299.00 H\n3.3|Syracuse 3B (inclined orbit)|2231.20 R;7722.50;20250.00 R\n3.1|Eutelsat 3B|3625.50 R;3626.00 L;11200.20 H;11699.80 H;12500.50 H\n2.9|Rascom QAF 1R|3956.20 R;3957.70 R;11448.00 H;11449.00 V\n2.7|Eutelsat Konnect VHTS|11698.20 H or R;11699.00 V or R;11701.60 R;11704.00 R\n1.9|BulgariaSat 1|11705.50 V or R;12496.50 H or R\n0.5|H2Sat|2285.973 R or L;10953.50 V\n0.3|MSG 3 (inclined orbit)|2247.50 R\n-0.3|Meteosat 12 (inclined orbit)|2243.50 R;2247.50 R;2251.50 R;2256.50 R\n-0.7|Thor 7|11706.00 R;12494.50 V or L;12495.50 V or L;20198.00 R\n-0.8|Thor 5|11201.00 R;11701.00 H;11702.00 L\n-0.8|Thor 6|11703.00 R;11704.00 H;11705.00 H\n-1.0|Intelsat 10-02|3947.50 R;3950.00 V;3952.00 R;11198.00 R;11452.00 R\n-1.0|MEV-2|3701.00 R;3944.50 R;3955.50 R;4199.80 R\n-3.0|ABS 3A|4194.50 L or H;4197.00 L or V;11450.00 R\n-3.4|MTG-S1 (inclined orbit)|2253.20 R or L;2243.50 R or L\n-3.5|Kizuna (inclined orbit)|2269.68 R;18900.00 R\n-4.0|Dror-1|10701.00 R or L or V;10950.00 R or L or H\n-4.1|Amos 3 (inclined orbit)|11449.00 L or R;11700.00 L or R\n-5.0|Eutelsat 5 West B|11198.80 V or L;11199.80 V or L;12501.00 H or L;12502.00 H or L\n-6.5|Syracuse 4B|2231.20 R or L;2232.40 R or L\n-7.0|Nilesat 301|12498.00 V or R;12499.00 V or H or R\n-7.0|Nilesat 201|12497.00 V;12499.90 H;19701.00\n-7.3|Eutelsat 7 West A|11199.50 H;11200.50 H;12498.00 H;12499.00 H\n-8.0|Eutelsat 8 West B|4199.00 V;11199.50 H or L;11200.50 H or L;12500.50 V or L\n-10.0|Hellas Sat 2 (inclined orbit)|3947.50 L;3948.00 L;3952.00 L;11451.50 R\n-11.0|Express AM44 (inclined orbit)|3405.40 R;3800.00 R;11199.50 R\n-12.0|TDRS 13 (inclined orbit)|\n-14.0|Express AM8|3405.10 R;3850.00 R;3850.50 L;11199.50 R\n-14.3|Elektro L2 (inclined orbit)|3405.70 R\n-15.0|Telstar 12V|11700.00 H or R;11701.00 V or L\n-16.2|Luch 5B (inclined orbit)|3404.40 R\n-17.8|Skynet 5C (inclined orbit)|2227.50 R;2252.50 R;2259.50 R\n-18.0|Intelsat 37e|4197.75 H or L;4198.25 H or L;11199.00 R;11451.50 R\n-20.0|Al Yah 3 (inclined orbit)|20198.50 L;20199.50 L\n-22.0|SES 4|4199.50 V;11451.00 R;11454.00 R;12500.50 L\n-24.5|Astra 1L (inclined orbit)|11205.00 V;11445.50 H;18404.00 H;18794.00 V\n-24.8|AlcomSat-1|3625.00 H;3954.50 V\n-27.1|Galaxy 28 (inclined orbit)|4195.00 V;4199.50 V;11702.00 H\n-30.0|Hispasat 30W-5|11699.00 H;12747.50 V;19769.00 R\n-30.0|Hispasat 30W-6|10701.00 H or R;11448.00 V or R;11702.00 V\n-30.0|SpainSat (inclined orbit)|2239.276 R or L;7250.50 L;7749.50 R\n-31.4|Intelsat 904 (inclined orbit)|3947.50 R;3950.00 V;11198.00 R\n-31.5|Intelsat 25 (inclined orbit)|3630.00 V;4198.50 H;11698.00 H;12254.00 V\n-31.7|Intelsat 28 (inclined orbit)|3947.50 R;3950.00 V;11198.00 R\n-33.5|Hylas 4|4199.25 R or L;4500.75 R or L;19700.00 V\n-34.5|Intelsat 35e|4197.75 L or H;4198.25 L or H;11198.00 R;11451.50 R\n-36.0|Hispasat 36W-1|11452.00 L or H;12749.00 L or V\n-37.4|NSS 10 (inclined orbit)|3703.00 V;4199.50 H\n-37.6|Telstar 11N|11198.25 H;11699.50 V\n-40.5|SES 6|3947.50 Linear 45;4500.10 Linear 135;11700.50 H or V;12199.50 H\n-41.0|TDRS 12 (inclined orbit)|\n-43.1|Intelsat 32e|11443.00 L or R or V;11443.50 L or R or V;11444.50 H\n-45.0|Intelsat 14|3704.00 H;3705.00 H;3709.00 R;11494.00 V\n-46.0|TDRS 6 (inclined orbit)|3730.90\n-47.5|SES 14|4198.00 V;10953.00 L or R or V;12198.00 L or R or H;20199.00 L\n-50.0|Intelsat 902 (inclined orbit)|3947.50 R;3950.00 V;11198.00 R\n-50.2|Eutelsat 50 West A (inclined orbit)|11700.60 H;11703.40 H;12500.00 H\n-53.0|Intelsat 23|3947.50 R;3950.00 V;3952.50 R;11700.00 R\n-54.1|Inmarsat 3F5 (inclined orbit)|3947.00 L;3949.40 L;3950.60 L or R\n-55.0|Inmarsat 5F2|4199.00 V or L;4199.50 V or L;19700.50 L or R\n-55.5|Intelsat 34|3700.25 H;3949.00 R or V;3950.50 R or V;11699.25 V\n-58.0|Intelsat 21|4199.50 R;11450.25 H;11451.25 L or V;11698.50 V\n-60.8|Amazonas 2 (inclined orbit)|4500.10 H;11703.00 V;12198.25 V\n-61.0|Amazonas 3|4199.75 H;11700.25 H;12199.50 V;20199.50 R\n-61.0|Amazonas 5|11701.00 H or V or R;12202.25 H or V or R\n-61.0|Amazonas Nexus|11704.50 V or R;12198.00 H or R;17852.148438 R";
+  const sats=raw.trim().split('\n').map((line,i)=>{
+    const [slon,name,entries='']=line.split('|');
+    return {id:i,lon:Number(slon),name, inclined:/inclined|incl\. orb\./i.test(name),beacons:entries?entries.split(';').map(s=>s.trim()).filter(Boolean):[]};
+  }).filter(s=>Number.isFinite(s.lon));
+  const f=(x,d=2)=>Number.isFinite(x)?Number(x).toFixed(d):'—';
+  const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+  const orb=s=>(Math.abs(s.lon).toFixed(1)+'°'+(s.lon>=0?'E':'W'));
+  const coords=$('satCoords'),search=$('satSearch'),select=$('satSelect'),beacon=$('satBeacon'), status=$('satStatus'),minElevation=$('satMinElevation');
+  let sector='east',chosenId=null,station={lat:56.147103,lon:37.762474},geom=null;
+  let emap=null,eantenna=null,evaLoading=false,drawPending=false,evaScriptPromise=null,markerDragging=false,resizeWatcher=null,evaLoadTimer=null;
+  const fallbackMapHTML=$('satMap').innerHTML;
+  const set=(id,v)=>$(id).textContent=v;
+  const validPosition=(lat,lon)=>Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180;
+  function coordinatePair(text){
+    let parts = text.includes(';')?text.split(';').map(x=>x.trim().replace(',','.')):text.split(',').map(x=>x.trim());
+    if(parts.length!==2||parts.some(p=>!/^[-+]?\d{1,3}(?:\.\d+)?$/.test(p)))return null;
+    const lat=Number(parts[0]),lon=Number(parts[1]);return validPosition(lat,lon)?{lat,lon}:null;
+  }
+  function lookAngles(lat,lon,satLon){
+    // Observer WGS84 ECEF; ideal equatorial circular geostationary satellite, R=42164 km.
+    const phi=rad(lat),lam=rad(lon),lambda=rad(satLon),delta=rad(((satLon-lon+540)%360)-180);
+    const a=6378.137,e2=0.00669437999014,Rs=42164.0,N=a/Math.sqrt(1-e2*Math.sin(phi)**2);
+    const cx=N*Math.cos(phi)*Math.cos(lam),cy=N*Math.cos(phi)*Math.sin(lam),cz=N*(1-e2)*Math.sin(phi);
+    const dx=Rs*Math.cos(lambda)-cx,dy=Rs*Math.sin(lambda)-cy,dz=-cz;
+    const east=-Math.sin(lam)*dx+Math.cos(lam)*dy;
+    const north=-Math.sin(phi)*(Math.cos(lam)*dx+Math.sin(lam)*dy)+Math.cos(phi)*dz;
+    const up=Math.cos(phi)*(Math.cos(lam)*dx+Math.sin(lam)*dy)+Math.sin(phi)*dz;
+    const az=(deg(Math.atan2(east,north))+360)%360,el=deg(Math.atan2(up,Math.hypot(east,north)));
+    const skew=deg(Math.atan2(Math.sin(delta),Math.tan(phi)));
+    return {az,el,skew:skew>90?skew-180:skew<-90?skew+180:skew,range:Math.hypot(dx,dy,dz)};
+  }
+  function satSelected(){return sats.find(s=>s.id===chosenId)||null;}
+  function updateSectors(){
+    for(const [id,v] of [['satSectorEast','east'],['satSectorMiddle','middle'],['satSectorWest','west']])$(id).setAttribute('aria-pressed',String(sector===v));
+  }
+  function filtered(){const q=search.value.toLocaleLowerCase().trim();return sats.filter(s=>q?(s.name+' '+orb(s)).toLocaleLowerCase().includes(q):(sector==='east'?s.lon>=30:sector==='middle'?s.lon>=0&&s.lon<30:s.lon<0));}
+  function populateSat(){
+    const items=filtered();select.replaceChildren();
+    for(const s of items){const o=document.createElement('option');o.value=String(s.id);o.textContent=orb(s).padEnd(8,' ')+' · '+s.name;select.append(o);}
+    if(items.length){if(!items.some(s=>s.id===chosenId))chosenId=items[0].id;select.value=String(chosenId);}else chosenId=null;
+    set('satCount',sats.length+' СПУТНИКОВ');
+    set('satSelectNote',items.length+' в списке'+(search.value.trim()?' · поиск по всему каталогу':''));
+    populateBeacon();
+  }
+  function populateBeacon(){
+    const s=satSelected();beacon.replaceChildren();
+    if(!s){const o=document.createElement('option');o.textContent='Спутник не найден';beacon.append(o);beacon.disabled=true;calculate();return;}
+    const list=s.beacons;
+    if(list.length){for(const val of list){const o=document.createElement('option');o.textContent=val+' MHz';o.value=val;beacon.append(o);}
+      const ku=list.findIndex(x=>{const n=parseFloat(x);return n>=10000&&n<=13000;});if(ku!==-1)beacon.selectedIndex=ku;beacon.disabled=false;
+    }else{const o=document.createElement('option');o.textContent='Частота не указана в источнике';beacon.append(o);beacon.disabled=true;}
+    calculate();
+  }
+  function selectedFrequency(){
+    const v=beacon.disabled?null:beacon.value;
+    if(!v)return null;
+    const number=Number.parseFloat(v);
+    return {number:Number.isFinite(number)?number:NaN,pol:v.replace(/^\S+\s*/, '').trim()||'не указана'};
+  }
+  function polarizationType(pol){
+    const p=String(pol||'').trim().toUpperCase();
+    if(p==='H'||p==='V')return 'linear';
+    if(p==='R'||p==='L')return 'circular';
+    return 'unknown'; // including H or V, R or L, Linear 45, and unspecified
+  }
+  function minWorkingElevation(){
+    const v=minElevation.value.trim().replace(',','.');
+    if(!/^(?:\d{1,2}(?:\.\d+)?|90(?:\.0+)?)$/.test(v))return NaN;
+    const n=Number(v);return n>=0&&n<=90?n:NaN;
+  }
+  function setVisibility(text,state){
+    const el=$('satVisibility');el.textContent=text;
+    el.className='sat-visibility-badge'+(state?' '+state:'');
+  }
+  function clearPointing(reason){
+    geom=null;
+    for(const id of ['satAz','satEl','satSkew'])$(id).innerHTML='— <small>°</small>';
+    $('satFreq').innerHTML='— <small>MHz</small>';
+    set('satPol','Поляризация —');set('satRange','— km');set('satLongitude','—');
+    setVisibility('ВИДИМОСТЬ · НЕТ РАСЧЁТА','error');
+    set('satMapHeading','TRUE AZ — · EL —');
+    set('satMapCaption','📡 Введите корректные координаты станции и выберите спутник');
+    status.className='sat-status error';status.textContent=reason;
+    drawFallback();
+    const overlay=$('satRayOverlay');if(overlay)overlay.style.visibility='hidden';
+  }
+  function calculate(){
+    const s=satSelected(),p=coordinatePair(coords.value),minEl=minWorkingElevation();
+    coords.setAttribute('aria-invalid',String(!p));
+    minElevation.setAttribute('aria-invalid',String(!Number.isFinite(minEl)));
+    if(!s||!p){clearPointing(!p?'Неверный формат координат. Пример: 56.147103, 37.762474.':'Нет подходящих спутников.');return;}
+    station=p;
+    geom=lookAngles(p.lat,p.lon,s.lon);
+    const sel=selectedFrequency(),polarization=polarizationType(sel?.pol);
+    $('satAz').innerHTML=f(geom.az)+' <small>°</small>';
+    $('satEl').innerHTML=f(geom.el)+' <small>°</small>';
+    $('satSkew').innerHTML=polarization==='linear'?(geom.skew>=0?'+':'')+f(geom.skew)+' <small>°</small>':'N/A';
+    $('satFreq').innerHTML=(sel&&Number.isFinite(sel.number)?f(sel.number,Number.isInteger(sel.number)?2:Math.max(2,String(sel.number).split('.')[1]?.length||0)):'—')+' <small>MHz</small>';
+    set('satPol',sel?'Поляризация: '+sel.pol:'Маяк: нет данных');
+    set('satRange',f(geom.range,0)+' km');set('satLongitude',orb(s));
+    const above=geom.el>0;
+    const flags=[];
+    if(!above){setVisibility('НЕТ ПРЯМОЙ ВИДИМОСТИ · НИЖЕ ГОРИЗОНТА','error');flags.push('Спутник на геометрическом горизонте или ниже: наведение невозможно. Стрелка отключена.');}
+    else if(!Number.isFinite(minEl)){setVisibility('ВИДИМОСТЬ · ПРОВЕРЬТЕ ПОРОГ','error');flags.push('Некорректный минимальный угол места: введите от 0 до 90°.');}
+    else if(geom.el<minEl){setVisibility('НАД ГОРИЗОНТОМ · НИЖЕ РАБОЧЕГО МИНИМУМА','warn');flags.push('Угол места '+f(geom.el)+'° ниже рабочего порога '+f(minEl)+'°.');}
+    else setVisibility('НАД ГОРИЗОНТОМ · РАСЧЁТ В НОРМЕ','');
+    if(s.inclined)flags.push('Наклонная орбита: для точного наведения нужны эфемериды.');
+    if(!sel||!Number.isFinite(sel.number))flags.push('Частота маяка не указана в каталоге.');
+    else if(polarization==='unknown')flags.push('Поляризация не определена однозначно: Skew не рассчитывается.');
+    else if(polarization==='circular')flags.push('Круговая поляризация: Skew неприменим (N/A).');
+    status.className='sat-status'+(!above||!Number.isFinite(minEl)?' error':geom.el<minEl||flags.length?' warn':'');
+    status.textContent=flags.length?flags.join(' '):'● Расчёт готов. Спутник выше горизонта и минимального рабочего угла. Проверьте отсутствие местных препятствий.';
+    set('satMapHeading',above?'TRUE AZ '+f(geom.az)+'° · EL '+f(geom.el)+'°':'НЕТ ВИДИМОСТИ · EL '+f(geom.el)+'°');
+    set('satMapCaption',above?'📡 '+f(station.lat,6)+', '+f(station.lon,6)+' · направление на '+s.name:'📡 '+f(station.lat,6)+', '+f(station.lon,6)+' · спутник ниже горизонта');
+    updateMapGeometry();
+  }
+  function syncInputFromMap(lat,lon){if(!validPosition(lat,lon))return;coords.value=f(lat,6)+', '+f(lon,6);calculate();}
+  function bearingPoint(lat,lon,bearing,distanceKm){
+    const R=6371.0088,d=distanceKm/R,ph1=rad(lat),l1=rad(lon),theta=rad(bearing);
+    const ph2=Math.asin(Math.sin(ph1)*Math.cos(d)+Math.cos(ph1)*Math.sin(d)*Math.cos(theta));
+    const l2=l1+Math.atan2(Math.sin(theta)*Math.sin(d)*Math.cos(ph1),Math.cos(d)-Math.sin(ph1)*Math.sin(ph2));
+    return {lat:deg(ph2),lng:((deg(l2)+540)%360)-180};
+  }
+  // The arrow is a 2D azimuth projection, not the physical RF ray toward GEO.
+  // Its endpoint is calculated from the currently visible map bounds in pixels.
+  function drawFallback(){
+    const arrow=$('satFallbackArrow');
+    if(!arrow)return;
+    arrow.style.display=geom&&geom.el>0?'':'none';
+    if(geom&&geom.el>0)arrow.setAttribute('transform','rotate('+geom.az+' 130 130)');
+  }
+  function scheduleBeam(){
+    if(drawPending||!emap)return;
+    drawPending=true;
+    requestAnimationFrame(()=>{drawPending=false;drawMapRay();});
+  }
+  const toXY=p=>Array.isArray(p)?[Number(p[0]),Number(p[1])]:[Number(p?.x),Number(p?.y)];
+  const toLL=p=>Array.isArray(p)?{lon:Number(p[0]),lat:Number(p[1])}:{lon:Number(p?.lng??p?.lon),lat:Number(p?.lat)};
+  // An unbounded ground-azimuth tangent ray, clipped to the current map viewport.
+  function drawMapRay(){
+    const overlay=$('satRayOverlay');if(!overlay)return;
+    if(!emap||!geom||geom.el<=0){overlay.style.visibility='hidden';return;}
+    const width=overlay.clientWidth,height=overlay.clientHeight;
+    if(width<2||height<2)return;
+    overlay.setAttribute('viewBox','0 0 '+width+' '+height);
+    const origin=toXY(emap.project([station.lon,station.lat]));
+    const next=bearingPoint(station.lat,station.lon,geom.az,15);
+    const other=toXY(emap.project([next.lng,next.lat]));
+    if(!origin.every(Number.isFinite)||!other.every(Number.isFinite)){overlay.style.visibility='hidden';return;}
+    let dx=other[0]-origin[0],dy=other[1]-origin[1];
+    const norm=Math.hypot(dx,dy);
+    if(!(norm>1e-8)){overlay.style.visibility='hidden';return;}
+    dx/=norm;dy/=norm;
+    // Ray/viewport intersection permits map panning, including an offscreen antenna.
+    let entry=0,exit=Infinity;
+    for(const [p,d,limit] of [[origin[0],dx,width],[origin[1],dy,height]]){
+      if(Math.abs(d)<1e-12){if(p<0||p>limit){overlay.style.visibility='hidden';return;}}
+      else{const a=-p/d,b=(limit-p)/d;entry=Math.max(entry,Math.min(a,b));exit=Math.min(exit,Math.max(a,b));}
+    }
+    if(!Number.isFinite(exit)||exit<=entry){overlay.style.visibility='hidden';return;}
+    overlay.style.visibility='visible';
+    const begin=entry+Math.min(3,(exit-entry)*0.1),finish=Math.max(begin,exit-8);
+    const p0=[origin[0]+dx*begin,origin[1]+dy*begin],p1=[origin[0]+dx*finish,origin[1]+dy*finish];
+    const line=$('satRayLine'),head=$('satRayHead');
+    line.setAttribute('x1',p0[0]);line.setAttribute('y1',p0[1]);line.setAttribute('x2',p1[0]);line.setAttribute('y2',p1[1]);
+    const back=14,half=6,ax=p1[0]-dx*back,ay=p1[1]-dy*back;
+    head.setAttribute('points',[p1,[ax-dy*half,ay+dx*half],[ax+dy*half,ay-dx*half]].map(v=>v.join(',')).join(' '));
+  }
+  function updateMapGeometry(){
+    drawFallback();
+    const overlay=$('satRayOverlay');if(overlay&&(!geom||geom.el<=0))overlay.style.visibility='hidden';
+    if(emap&&eantenna){
+      if(!markerDragging){
+        const p=toLL(eantenna.getLngLat());
+        if(Math.abs(p.lat-station.lat)>1e-7||Math.abs(p.lon-station.lon)>1e-7)
+          eantenna.setLngLat([station.lon,station.lat]);
+      }
+      scheduleBeam();
+    }
+  }
+  function loadEvaSdk(){
+    if(window.EvaMaps)return Promise.resolve(window.EvaMaps);
+    if(evaScriptPromise)return evaScriptPromise;
+    evaScriptPromise=new Promise((resolve,reject)=>{
+      if(!document.querySelector('link[data-evamaps-css]')){
+        const css=document.createElement('link');css.rel='stylesheet';css.href='https://evamaps.ru/sdk/1/evamaps.css';css.dataset.evamapsCss='1';document.head.appendChild(css);
+      }
+      const script=document.createElement('script');script.src='https://evamaps.ru/sdk/1/evamaps.js';script.async=true;
+      const timeout=setTimeout(()=>reject(new Error('Время ожидания EvaMaps SDK истекло')),16000);
+      script.onload=()=>{clearTimeout(timeout);window.EvaMaps?resolve(window.EvaMaps):reject(new Error('SDK загрузился без EvaMaps'))};
+      script.onerror=()=>{clearTimeout(timeout);reject(new Error('Нет доступа к серверу EvaMaps'))};
+      document.head.appendChild(script);
+    }).catch(e=>{evaScriptPromise=null;throw e;});
+    return evaScriptPromise;
+  }
+  function setEvaMessage(msg){set('satEvaNote',msg);}
+  const antennaSvg='<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 44 44"><rect x="2" y="2" width="40" height="40" rx="12" fill="#493529" stroke="#ffcc91" stroke-width="2.2"/><path d="M11 14c7 12 12 17 23 13M14 12c0 9 10 20 19 19" fill="none" stroke="#ffe4b7" stroke-width="2.2"/><path d="M23 24l-4 10m4-10 7 10" fill="none" stroke="#ffd598" stroke-width="2.7" stroke-linecap="round"/><circle cx="24" cy="24" r="3" fill="#37e6d4"/></svg>';
+  function showEvaMap(){
+    if(evaLoading||emap)return;
+    evaLoading=true;
+    set('satMapProvider','EVAMAPS · ПОДКЛЮЧЕНИЕ');
+    setEvaMessage('Загрузка EvaMaps…');
+    $('satRetryEva').hidden=true;
+    const fail=err=>{
+      evaLoading=false;
+      if(evaLoadTimer){clearTimeout(evaLoadTimer);evaLoadTimer=null;}
+      if(emap){try{emap.destroy()}catch(_){ }emap=null;eantenna=null;}
+      set('satMapProvider','EVAMAPS · НЕТ СОЕДИНЕНИЯ');
+      setEvaMessage('Карта недоступна: '+String(err?.message||err)+'. Геометрические расчёты продолжают работать.');
+      $('satRetryEva').hidden=false;
+      const holder=$('satMap');holder.innerHTML=fallbackMapHTML;
+      drawFallback();
+    };
+    loadEvaSdk().then(EvaMaps=>{
+      if(!EvaMaps||typeof EvaMaps.create!=='function'||typeof EvaMaps.marker!=='function')throw Error('Несовместимая версия EvaMaps SDK');
+      const holder=$('satMap');
+      holder.innerHTML=`<div class="sat-eva-viewport" id="satEvaViewport"></div><svg id="satRayOverlay" class="sat-ray-overlay" xmlns="http://www.w3.org/2000/svg" aria-label="Бирюзовая стрелка истинного азимута">
+        <line id="satRayLine" stroke="#32e5d3" stroke-width="3.1" stroke-linecap="round" opacity=".98"/>
+        <polygon id="satRayHead" fill="#32e5d3" opacity=".98"/></svg>`;
+      emap=EvaMaps.create('satEvaViewport',{center:[station.lon,station.lat],zoom:10,theme:'light',cooperative:true,zoomControl:true,scaleControl:true});
+      eantenna=EvaMaps.marker([station.lon,station.lat],{
+        draggable:true,title:'Перетащите антенну',
+        icon:{url:'data:image/svg+xml,'+encodeURIComponent(antennaSvg),size:[36,36],anchor:[18,18]}
+      }).addTo(emap);
+      eantenna.on('dragstart',()=>{markerDragging=true;});
+      eantenna.on('drag',()=>{
+        const p=toLL(eantenna.getLngLat());
+        if(validPosition(p.lat,p.lon)){
+          station={lat:p.lat,lon:p.lon};
+          if(satSelected())geom=lookAngles(p.lat,p.lon,satSelected().lon);
+          scheduleBeam();
+        }
+      });
+      eantenna.on('dragend',()=>{
+        const p=toLL(eantenna.getLngLat());markerDragging=false;
+        if(validPosition(p.lat,p.lon))syncInputFromMap(p.lat,p.lon);
+        else updateMapGeometry();
+      });
+      for(const event of ['move','moveend','zoom','zoomend','resize'])emap.on(event,scheduleBeam);
+      // EvaMaps SDK documents `load` as the event when the first visible map tiles load.
+      // Creating a map or receiving a script is not proof that imagery was loaded.
+      const mapInstance=emap;
+      mapInstance.on('load',()=>{
+        if(emap!==mapInstance)return;
+        if(evaLoadTimer){clearTimeout(evaLoadTimer);evaLoadTimer=null;}
+        set('satMapProvider','EVAMAPS · ONLINE');
+        setEvaMessage('Карта загружена. Перетащите антенну 📡 для расчёта; масштабируйте двумя пальцами.');
+        scheduleBeam();
+      });
+      evaLoadTimer=setTimeout(()=>{
+        if(emap!==mapInstance)return;
+        set('satMapProvider','EVAMAPS · ТАЙЛЫ НЕ ПОДТВЕРЖДЕНЫ');
+        setEvaMessage('Картографическая подложка пока не загрузилась. Проверьте интернет; расчёт углов доступен.');
+        evaLoadTimer=null;
+      },20000);
+      if(window.ResizeObserver)resizeWatcher=new ResizeObserver(scheduleBeam);
+      resizeWatcher?.observe(holder);
+      evaLoading=false;
+      set('satMapProvider','EVAMAPS · ОЖИДАНИЕ КАРТЫ');
+      setEvaMessage('Ожидаем загрузку картографической подложки EvaMaps…');
+      updateMapGeometry();
+      requestAnimationFrame(scheduleBeam);
+    }).catch(fail);
+  }
+  function centerMap(){if(emap){emap.setView([station.lon,station.lat],emap.getZoom());scheduleBeam();}}
+  function setSector(value){sector=value;search.value='';chosenId=null;updateSectors();populateSat();}
+  $('satSectorEast').addEventListener('click',()=>setSector('east'));
+  $('satSectorMiddle').addEventListener('click',()=>setSector('middle'));
+  $('satSectorWest').addEventListener('click',()=>setSector('west'));
+  search.addEventListener('input',()=>{chosenId=null;populateSat();});
+  select.addEventListener('change',()=>{chosenId=Number(select.value);populateBeacon();});
+  beacon.addEventListener('change',calculate);
+  coords.addEventListener('input',calculate);
+  minElevation.addEventListener('input',calculate);
+  coords.addEventListener('change',()=>{if(coordinatePair(coords.value))centerMap();});
+  $('satGeo').addEventListener('click',()=>{if(!navigator.geolocation){set('satCoordsNote','Геолокация не поддерживается браузером.');return;}
+    set('satCoordsNote','Запрашиваем разрешение на определение местоположения…');navigator.geolocation.getCurrentPosition(pos=>{syncInputFromMap(pos.coords.latitude,pos.coords.longitude);centerMap();set('satCoordsNote','Местоположение определено. Точность устройства: ≈'+Math.round(pos.coords.accuracy)+' м.');},err=>{set('satCoordsNote','Доступ к геолокации не получен: '+(err.message||'ошибка')+'. Можно ввести координаты вручную.');},{enableHighAccuracy:true,timeout:12000,maximumAge:20000});
+  });
+  $('satRetryEva').addEventListener('click',showEvaMap);
+  $('satCenterEva').addEventListener('click',()=>{if(!emap)showEvaMap();else centerMap();});
+  window.satFinderShow=()=>{drawFallback();if(emap)setTimeout(scheduleBeam,120);else showEvaMap();};
+  // Default GEO satellite: Express AMU1 (36.0 E).
+  chosenId=sats.find(s=>s.name.startsWith('Express AMU1 /'))?.id??null;
+  sector='east';updateSectors();populateSat();
+})();
+
+</script>
+<script>if(location.hash==='#sat-finder')window.satFinderShow?.();</script>
 <dialog class="pwa-dialog" id="pwaInstallHelp" aria-labelledby="pwaInstallTitle">
   <h2 id="pwaInstallTitle">Установка RF Tools</h2>
-  <p>Установите RF Measurement Tools v1.8 на главный экран телефона или на компьютер. После первой загрузки приложение работает автономно, без обращения к серверу за расчётами.</p>
+  <p>Установите RF Measurement Tools v2.4 на главный экран телефона или на компьютер. После первой загрузки приложение работает автономно, без обращения к серверу за расчётами.</p>
   <div class="pwa-steps" id="pwaInstallSteps">Откройте приложение через HTTPS или localhost и используйте пункт «Установить» в меню браузера.</div>
   <p id="pwaInstallNote">Для установки требуется HTTPS (либо localhost). При открытии файла напрямую расчёты работают, но установка и офлайн-кэширование PWA недоступны.</p>
   <footer><button type="button" id="pwaInstallClose">Закрыть</button></footer>
 </dialog>
 <script>
-/* Optional install UX / offline capability; separate from the canonical RF v1.8 engines. */
+/* Optional install UX / offline capability; separate from the canonical RF v2.4 engines. */
 (() => {
   'use strict';
   let deferredInstall = null;

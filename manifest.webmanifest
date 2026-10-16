@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "RF Measurement Tools v1.8",
+  "name": "RF Measurement Tools v2.4",
   "short_name": "RF Tools",
-  "description": "Автономный RF Power Meter, DVB-S/S2/S2X калькулятор, RF Spectrum и Constellation.",
+  "description": "RF Power Meter, DVB-S/S2/S2X, RF Spectrum, Constellation и Sat Finder с EvaMaps.",
   "lang": "ru",
   "dir": "ltr",
   "start_url": "./index.html",
