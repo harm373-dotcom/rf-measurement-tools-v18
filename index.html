@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a111b">
+<title>RF Measurement Tools v1.8 — RF Power Meter / Frequency & MOD COD</title>
+<style>
+  :root{color-scheme:dark; --bg:#080e17;--panel:#121b29;--panel2:#172334;--line:#2c3d50;--txt:#f0f6fa;--muted:#94a9bd;--soft:#cad7e4;--accent:#4de0c5;--gold:#ffcb62;--red:#ff5c61;--shadow:0 22px 62px #0005;}
+  *{box-sizing:border-box}
+  html,body{min-height:100%;margin:0}
+  body{font-family:Inter, ui-sans-serif, system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--txt);background:radial-gradient(ellipse 78% 64% at 16% -10%,#1a3546 0%,transparent 75%),radial-gradient(ellipse 78% 75% at 95% 105%,#202538 0%,transparent 76%),var(--bg);font-variant-numeric:tabular-nums}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,#0009,transparent 85%)}
+  .app{position:relative;max-width:1590px;margin:auto;padding:28px clamp(15px,3vw,54px) 32px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:24px}
+  .brand{display:flex;align-items:center;gap:15px}
+  .logo{width:47px;height:47px;display:grid;place-items:center;flex:none;border:1px solid #407b77;border-radius:14px;background:linear-gradient(145deg,#163e46,#122338);box-shadow:0 0 28px #36d7b51a}
+  .logo svg{width:29px;height:29px}
+  .eyebrow{color:#69e5cd;letter-spacing:.22em;text-transform:uppercase;font-size:10px;font-weight:800}
+  h1{font-size:clamp(23px,2.4vw,32px);letter-spacing:.01em;margin:1px 0 0;font-weight:850}
+  h1 span{color:#79e9db}
+  .status{font-size:11px;color:#b7c9d7;letter-spacing:.14em;font-weight:800;border:1px solid #385d60;background:#163a3d70;border-radius:99px;padding:11px 15px;white-space:nowrap}
+  .dot{display:inline-block;background:#50eab9;vertical-align:1px;width:8px;height:8px;border-radius:50%;margin-right:9px;box-shadow:0 0 12px #50eab9}
+  .main-grid{display:grid;grid-template-columns:minmax(250px,306px) minmax(0,1fr);gap:20px;align-items:stretch}
+  .inputs{display:flex;flex-direction:column;gap:16px}
+  .input-card,.meter-card,.attenuation-panel,.bottom-card{border:1px solid #314155d9;border-radius:18px;background:linear-gradient(153deg,#192436ed,#101a28ed);box-shadow:var(--shadow)}
+  .input-card{padding:22px 22px 19px;flex:1;min-height:183px}
+  .field-header{display:flex;align-items:start;justify-content:space-between;gap:10px}
+  .field-label{font-weight:750;letter-spacing:.13em;color:#c9d9e7;font-size:12px}
+  .field-subtitle{font-size:11px;color:var(--muted);margin:7px 0 19px}
+  .unit-toggle{display:flex;gap:2px;padding:3px;background:#0a1420;border:1px solid #33485c;border-radius:11px}
+  .unit-toggle button{border:0;background:transparent;color:#94a5b5;padding:5px 10px;border-radius:8px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
+  .unit-toggle button.active{background:#2b4f55;color:#9bffe9}
+  .entry{display:flex;align-items:end;gap:7px;border-bottom:1px solid #52667b;transition:border-color .18s}
+  .entry:focus-within{border-color:#4de0c5}
+  .entry input{border:none;background:transparent;color:#fff;min-width:0;width:100%;outline:none;padding:2px 0 12px;font:800 clamp(24px,2.35vw,37px) / 1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.06em;font-variant-numeric:tabular-nums}
+  .entry input::placeholder{color:#63778b}
+  .entry .suffix{padding:0 0 15px;color:#84eccf;font-weight:900;letter-spacing:.08em;font-size:14px}
+  .micro-row{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-top:13px;color:#8ea4b7;font-size:11px}
+  .stepper{display:flex;gap:7px}
+  .stepper button{color:#cbdce9;border:1px solid #3b5267;background:#233347;border-radius:7px;min-width:31px;height:26px;font-size:17px;cursor:pointer}
+  button:hover{filter:brightness(1.14)}
+  button:focus-visible,input:focus-visible{outline:2px solid #89ecdd;outline-offset:3px}
+  .meter-card{padding:22px 25px 14px;min-width:0;overflow:hidden}
+  .meter-top{display:flex;align-items:start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .overline{font-weight:850;color:#9fb5c9;font-size:11px;letter-spacing:.17em}
+  .readout{display:flex;align-items:baseline;gap:15px;flex-wrap:wrap;margin-top:9px}
+  #correctedPower{font-weight:850;font-size:clamp(34px,4.2vw,65px);line-height:1.12;letter-spacing:-.06em;font-variant-numeric:tabular-nums}
+  .main-unit{font-size:clamp(17px,1.6vw,24px);font-weight:800;color:#9de9d5}
+  #correctedDbm{font-size:clamp(16px,1.55vw,23px);font-weight:850;letter-spacing:-.03em;color:#c6d9e9}
+  .range-state{font-size:11px;font-weight:850;letter-spacing:.08em;color:#91e2d4;padding:10px 12px;border:1px solid #32716b;background:#173d3b88;border-radius:9px;white-space:nowrap}
+  .range-state.out{background:#4e2225a8;border-color:#a64a52;color:#ffb5b7}
+  .ruler-head{margin-top:25px;display:flex;justify-content:space-between;gap:10px;color:#9bb0c5;letter-spacing:.12em;font-size:10px;font-weight:800}
+  .scroll-hint{display:none;color:#a7b9c8;letter-spacing:0}
+  .ruler-scroll{overflow-x:auto;scrollbar-color:#435972 transparent;scrollbar-width:thin;overscroll-behavior-inline:contain}
+  #ruler{display:block;width:100%;min-width:690px;height:auto;touch-action:pan-x;user-select:none}
+  .bar-bg{filter:drop-shadow(0 2px 10px #0ac7912c)}
+  #pointerLine{transition:x1 .16s ease,x2 .16s ease;stroke:#f4fbff;stroke-width:2}
+  #pointerTriangle,#pointerCircle{transition:transform .16s ease}
+  .legend{display:flex;align-items:center;justify-content:space-between;color:#a7bbcd;gap:12px;font-size:11px;margin-top:2px}
+  .legend .rainbow{height:6px;flex:1;max-width:220px;border-radius:10px;background:linear-gradient(90deg,#1bd76f,#a5dd4a,#ffe35b,#ffa33f,#ff5859)}
+  .attenuation-panel{grid-column:2;display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,240px) auto;gap:15px;align-items:center;padding:17px 23px;background:linear-gradient(125deg,#182a36,#152231)}
+  .attenuation-panel h2{margin:0;font-size:14px;letter-spacing:.12em}
+  .attenuation-panel p{font-size:11px;color:var(--muted);line-height:1.5;margin:7px 0 0}
+  .att-field{display:flex;align-items:center;gap:12px;border:1px solid #456073;background:#091522;border-radius:12px;padding:9px 15px}
+  #attenuationInput{width:100%;min-width:0;background:none;color:#ffd78b;border:none;outline:none;font:800 25px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.06em}
+  .att-field:focus-within{border-color:#ffd78b}
+  .att-field span{color:#ffd78b;font-weight:800}
+  .reset{padding:14px 16px;color:#d9e8f1;background:#283849;border:1px solid #4d6073;border-radius:11px;font-weight:800;font-size:11px;letter-spacing:.08em;cursor:pointer}
+  .vswr-section{margin-top:20px;border:1px solid #34506a;border-radius:19px;background:linear-gradient(145deg,#172436ed,#0e1a2aef);box-shadow:var(--shadow);overflow:hidden}
+  .vswr-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:17px 22px 16px;border-bottom:1px solid #34475c;background:linear-gradient(90deg,#173c44b8,#17283a80)}
+  .vswr-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .vswr-tab{padding:10px 17px;border:1px solid #408e87;border-radius:10px;background:#24514e;color:#a3ffee;font-weight:900;letter-spacing:.13em;font-size:12px;box-shadow:0 0 18px #3fe2b81a}
+  .vswr-title h2{margin:0;font-size:14px;letter-spacing:.075em;font-weight:800}
+  .vswr-tag{color:#9eb6c9;font-size:11px;line-height:1.5}
+  .vswr-body{padding:22px}
+  .vswr-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.3fr);gap:22px}
+  .reflected-col{padding-right:19px;border-right:1px solid #32475a}
+  .vswr-subtitle{font-weight:850;color:#cee0ed;font-size:12px;letter-spacing:.13em;margin:0 0 10px}
+  .vswr-caption{font-size:11px;color:#93adc2;line-height:1.65;margin:0 0 14px}
+  .reflected-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+  .reflect-field{padding:13px 12px 10px;background:#0b1624;border:1px solid #3c5063;border-radius:12px;min-width:0}
+  .reflect-field:focus-within{border-color:#56dfc9}
+  .reflect-label{font-size:10px;font-weight:850;color:#abc0d0;letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:9px}
+  .reflect-entry{display:flex;align-items:center;gap:6px}
+  .reflect-entry input{min-width:0;width:100%;padding:7px 0;background:transparent;color:#f7fbff;font:800 clamp(17px,1.65vw,25px)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;border:0;outline:none;letter-spacing:-.06em}
+  .reflect-entry span{color:#75e9d1;font-weight:850;font-size:11px}
+  .vswr-mini-toggle{display:flex;gap:3px}
+  .vswr-mini-toggle button{padding:3px 5px;border:none;border-radius:5px;background:#1d3042;color:#9bb1c6;font-size:10px;font-weight:850;cursor:pointer}
+  .vswr-mini-toggle button.active{background:#317167;color:#cbfff1}
+  .incident-line{border:1px solid #315763;background:#1430387a;border-radius:11px;padding:12px 14px;margin-top:15px;display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+  .incident-line span{color:#aac2cd;font-size:11px}
+  .incident-line strong{color:#dcfcf4;font-size:15px}
+  .vswr-results{min-width:0}
+  .vswr-primary{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .vswr-value{font-size:clamp(34px,3.65vw,55px);font-weight:900;line-height:1.1;letter-spacing:-.055em;white-space:nowrap}
+  .vswr-unit{color:#b3c9d8;font-size:15px;font-weight:800;margin-left:4px}
+  .vswr-state{font-size:11px;color:#83e8c8;border:1px solid #337c69;background:#123a38a0;border-radius:8px;padding:9px 11px;font-weight:850}
+  .vswr-state.warn{background:#4b29238c;border-color:#a76c49;color:#ffd2a0}
+  .vswr-state.critical{background:#631e2c;border-color:#fc5d71;color:#ffe2e4;box-shadow:0 0 0 1px #fa5b6c35,0 0 23px #ff4d6322}
+  .vswr-danger{margin:0 0 13px;padding:11px 13px;border:1px solid #ff6373;background:linear-gradient(90deg,#5b202b,#411c29);border-radius:10px;color:#ffe1e5;font-size:12px;font-weight:750;line-height:1.55}
+  .ratio-track{position:relative}
+  .ratio-track:after{content:"";position:absolute;left:10%;top:0;bottom:0;width:2px;background:#f8f9ff;box-shadow:0 0 7px #fff;pointer-events:none}
+  .ratio-note .threshold-label{color:#ffb1b9;font-weight:850}
+  .vswr-indicators{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .vswr-metric{border:1px solid #32485d;background:#111d2c;border-radius:11px;padding:12px;min-width:0}
+  .vswr-metric .highlight{color:#ffe0a1}
+  .vswr-metric label{display:block;color:#90acc0;letter-spacing:.065em;font-size:10px;font-weight:800;margin-bottom:10px}
+  .vswr-metric strong{display:block;color:#f2f7fb;font-size:clamp(16px,1.7vw,23px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mismatch-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border:1px solid #51604b;background:#3435254f;border-radius:11px;padding:10px 13px;margin-top:13px}
+  .mismatch-summary span{font-size:11px;color:#c7d5c7;font-weight:750}
+  .mismatch-summary strong{font-size:16px;color:#ffdc8f;font-weight:850}
+  .ratio-track{margin-top:17px;height:8px;border-radius:15px;overflow:hidden;background:#293a4a}
+  .ratio-fill{width:0;height:100%;background:linear-gradient(90deg,#38d8ac,#edc74f,#f36861);transition:width .16s ease}
+  .ratio-note{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:#8da5b9;margin-top:7px}
+  .vswr-help{font-size:11px;color:#9eb4c5;line-height:1.65;margin:16px 0 0}
+  .vswr-help.warn{color:#ffd4a7}
+  input[aria-invalid="true"]{color:#ffb0a2!important}
+  .small-tag{color:#6febd3;border:1px solid #42766d;background:#1b353b;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:850;white-space:nowrap}
+
+  /* Standalone multi-carrier power calculator: no dependency on main meter. */
+  .group-section{margin-top:20px;border:1px solid #34506a;border-radius:19px;background:linear-gradient(143deg,#162536ee,#0d1725ee);box-shadow:var(--shadow);overflow:hidden}
+  .group-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:17px 22px;border-bottom:1px solid #34475c;background:linear-gradient(90deg,#1c314cab,#173c4480)}
+  .group-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .group-tab{padding:10px 15px;border:1px solid #537cb9;border-radius:10px;background:#273e63;color:#d6eaff;font-size:12px;font-weight:900;letter-spacing:.12em}
+  .group-title h2{font-size:14px;letter-spacing:.075em;margin:0}
+  .group-tag{font-size:11px;letter-spacing:.05em;color:#adc3d5;font-weight:750}
+  .group-body{padding:22px}
+  .group-intro{margin:0 0 18px;color:#9bb6ca;font-size:12px;line-height:1.7}
+  .group-intro strong{color:#deedf9}
+  .group-channels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px}
+  .group-signal{padding:13px;border:1px solid #3a4d65;border-radius:12px;background:#101d2c;min-width:0;transition:border-color .15s,background .15s}
+  .group-signal:focus-within{border-color:#74bafd}
+  .group-signal.filled{background:#142a3c;border-color:#3f6e85}
+  .group-signal-top{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:10px}
+  .group-signal-top label{color:#b9d0e2;letter-spacing:.08em;font-size:10px;font-weight:850}
+  .group-signal-top output{font-size:10px;color:#7b9bb3;white-space:nowrap}
+  .group-entry{display:flex;align-items:center;gap:5px;border-bottom:1px solid #455a71}
+  .group-entry:focus-within{border-color:#75c9ed}
+  .group-entry input{width:100%;min-width:0;background:transparent;border:0;outline:none;color:#f3f8ff;font:850 clamp(18px,1.65vw,25px)/1.25 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.045em;padding:4px 0 9px}
+  .group-entry input::placeholder{color:#567088}
+  .group-entry span{color:#81bdea;font-weight:850;font-size:11px;padding-bottom:8px}
+  .group-bar{height:5px;background:#273c51;border-radius:10px;overflow:hidden;margin-top:12px}
+  .group-bar-fill{height:100%;width:0;background:linear-gradient(90deg,#3da8e5,#54dbcd);transition:width .18s ease}
+  .group-subtitle{font-weight:850;letter-spacing:.12em;color:#b8d3e6;font-size:11px;margin:23px 0 11px}
+  .group-corrections{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .group-correction{border:1px solid #38546a;background:#0c1929;border-radius:13px;padding:15px;min-width:0}
+  .group-correction label{display:block;color:#b7d0e1;font-size:11px;font-weight:850;letter-spacing:.08em;margin-bottom:11px}
+  .group-correction .group-entry input{font-size:clamp(21px,2vw,29px)}
+  .group-correction small{display:block;margin-top:9px;color:#829eb4;font-size:11px;line-height:1.5}
+  .group-correction .plus{color:#5ae6b5}.group-correction .minus{color:#ffcb7f}
+  .group-output{margin-top:19px;border:1px solid #3e6272;background:linear-gradient(105deg,#122e3c,#101d2f);border-radius:15px;padding:18px 20px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px 25px;align-items:center}
+  .group-result-label{font-size:11px;font-weight:850;letter-spacing:.13em;color:#a4bed1}
+  .group-final{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:7px}
+  #groupFinalDbm{font:900 clamp(30px,3vw,47px)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.04em;color:#88eadc}
+  .group-final .group-final-unit{font-size:17px;font-weight:850;color:#adcedb}
+  #groupFinalW{display:block;font-weight:850;color:#f0f7fd;font-size:20px;margin-top:6px;overflow-wrap:anywhere}
+  .group-summary{display:grid;gap:10px}
+  .group-summary-line{display:flex;justify-content:space-between;align-items:baseline;gap:9px;font-size:11px;color:#9fb9ca;border-bottom:1px solid #304659;padding-bottom:8px}
+  .group-summary-line strong{color:#ebf6ff;text-align:right;font-size:13px}
+  .group-footer{margin-top:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .group-status{font-weight:800;font-size:11px;color:#80e7c3;line-height:1.55}
+  .group-status.error{color:#ff929c}
+  .group-reset{background:#263c55;color:#cce8fb;border:1px solid #45647e;padding:10px 14px;border-radius:9px;font-weight:800;cursor:pointer;font-size:11px;letter-spacing:.07em}
+  @media(max-width:1050px){.group-channels{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(max-width:690px){.group-section{margin-top:12px}.group-top{padding:12px}.group-title{gap:8px}.group-title h2{font-size:12px}.group-tab{padding:8px 9px}.group-tag{font-size:10px}.group-body{padding:12px}.group-channels{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.group-signal{padding:11px 10px}.group-signal-top label{font-size:9px}.group-signal-top output{font-size:9px}.group-entry input{font-size:20px}.group-corrections{grid-template-columns:1fr;gap:9px}.group-correction{padding:12px}.group-correction small{margin-top:5px}.group-subtitle{margin-top:20px}.group-output{padding:14px;grid-template-columns:1fr;gap:16px}.group-final{margin-top:8px}.group-final #groupFinalDbm{font-size:36px}.group-summary{gap:8px}.group-footer{align-items:flex-start}}
+  @media(max-width:1010px){.main-grid{grid-template-columns:225px minmax(0,1fr);gap:12px}.input-card{padding:18px 15px}.meter-card{padding:20px 17px}.attenuation-panel{padding:15px 17px;grid-template-columns:1fr minmax(150px,220px);}.attenuation-panel .reset{grid-column:2;justify-self:stretch}.scroll-hint{display:inline}}
+  @media(min-width:691px) and (max-width:990px){.vswr-layout{grid-template-columns:1fr;gap:17px}.reflected-col{border-right:0;border-bottom:1px solid #334759;padding:0 0 16px}}
+  @media(max-width:690px){.app{padding:18px 12px 24px}header{margin-bottom:15px}.brand{gap:10px}.logo{width:41px;height:41px}.status{font-size:9px;padding:9px}.main-grid{display:flex;flex-direction:column}.inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.input-card{min-height:0;padding:13px 11px 12px;border-radius:14px}.field-header{flex-wrap:wrap;gap:4px}.field-label{font-size:10px}.field-subtitle{font-size:10px;margin:6px 0 10px}.unit-toggle button{padding:4px 7px}.entry input{font-size:clamp(18px,5.1vw,26px)}.entry .suffix{font-size:10px}.micro-row{font-size:9px}.stepper button{min-width:27px;height:24px}.meter-card{padding:18px 12px 12px}.ruler-head{margin-top:18px}.ruler-scroll{margin-right:-12px;padding-right:12px}.attenuation-panel{grid-column:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px}.attenuation-panel h2{font-size:12px}.attenuation-panel p{font-size:10px}.att-field{padding:7px 10px}.att-field input{font-size:20px!important}.attenuation-panel .reset{grid-column:1/-1;padding:11px}.vswr-section{margin-top:12px}.vswr-top{padding:12px}.vswr-title{gap:8px}.vswr-title h2{font-size:12px}.vswr-tag{font-size:10px}.vswr-body{padding:12px}.vswr-layout{grid-template-columns:1fr;gap:17px}.reflected-col{border-right:0;border-bottom:1px solid #334759;padding-right:0;padding-bottom:16px}.reflected-controls{gap:8px}.reflect-field{padding:10px 8px}.reflect-entry input{font-size:18px}.incident-line{padding:10px}.vswr-indicators{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.vswr-metric{padding:10px 11px}.vswr-metric label{font-size:9px}.vswr-metric strong{font-size:clamp(14px,4vw,20px)}.legend{font-size:10px}}
+  @media(max-width:370px){header{flex-wrap:wrap;gap:7px}.status{margin-left:auto;padding:7px 10px}.brand{gap:9px}.logo{width:36px;height:36px}h1{font-size:23px}.vswr-value{font-size:30px}.vswr-unit{font-size:12px}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* v1.4: self-contained, mutually independent RF engineering converters */
+  .convert-section{margin-top:20px;border:1px solid #3a5870;border-radius:19px;overflow:hidden;background:linear-gradient(145deg,#152335f2,#0b1726f2);box-shadow:var(--shadow)}
+  .convert-head{padding:17px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;background:linear-gradient(90deg,#183b42bc,#26374eb3);border-bottom:1px solid #34506a}
+  .convert-title{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .convert-title h2{font-size:14px;letter-spacing:.07em;margin:0}
+  .convert-pill{padding:10px 14px;border:1px solid #3caeac;border-radius:10px;color:#adf6ea;background:#18504e;font-size:12px;font-weight:900;letter-spacing:.08em}
+  .convert-sub{font-size:11px;color:#adc2d2;line-height:1.55}
+  .convert-body{padding:22px}
+  .convert-intro{color:#a5bfd0;font-size:12px;line-height:1.65;margin:0 0 15px}
+  .convert-intro strong{color:#e2eef7}
+  .impedance-switch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .impedance-switch>span{font-weight:850;letter-spacing:.08em;font-size:11px;color:#c4dae8}
+  .impedance-switch .unit-toggle button{font-size:12px;padding:8px 13px}
+  .impedance-caption{font-size:11px;color:#8faec2}
+  .conversion-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .convert-field{min-width:0;border:1px solid #3a536b;background:#0e1d2d;border-radius:12px;padding:14px 15px 11px;transition:border-color .15s}
+  .convert-field:focus-within{border-color:#65daca;background:#122a37}
+  .convert-field>label{display:block;font-size:11px;color:#c0d6e6;letter-spacing:.09em;font-weight:800;margin-bottom:12px}
+  .convert-entry{display:flex;align-items:center;gap:7px;border-bottom:1px solid #42576a}
+  .convert-entry:focus-within{border-color:#7fe9d2}
+  .convert-entry input{width:100%;min-width:0;border:0;background:none;outline:0;padding:4px 0 10px;color:#edfaff;font:800 clamp(19px,1.8vw,27px)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.035em}
+  .convert-entry span{color:#68dfd3;font-size:12px;font-weight:850;padding-bottom:8px;white-space:nowrap}
+  .convert-field small{display:block;color:#7e9aaf;font-size:10px;margin-top:9px;line-height:1.5}
+  .convert-status{margin-top:13px;font-size:11px;color:#85e4cb;font-weight:750;line-height:1.5}
+  .convert-status.error{color:#ffa3a3}
+  .rf-extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-top:23px}
+  .rf-tool{border:1px solid #3a536d;border-radius:15px;background:#101e2edc;overflow:hidden;min-width:0}
+  .rf-tool-head{padding:15px 17px;border-bottom:1px solid #34465d;background:#1a2e42a6;display:flex;align-items:center;gap:11px;justify-content:space-between;flex-wrap:wrap}
+  .rf-tool-head h3{font-size:13px;letter-spacing:.09em;margin:0;color:#e0effb}
+  .rf-tool-head span{font-size:10px;color:#99b6c8}
+  .rf-tool-body{padding:17px}
+  .rf-tool-tip{font-size:11px;color:#91abbf;line-height:1.6;margin:0 0 15px}
+  .rf-input-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .rf-input{border:1px solid #354a60;border-radius:10px;background:#0a1625;padding:11px 12px;min-width:0}
+  .rf-input:focus-within{border-color:#65daca}
+  .rf-input>label{font-size:10px;color:#aac6d8;font-weight:850;letter-spacing:.06em;display:block;margin-bottom:10px}
+  .rf-input .convert-entry input{font-size:clamp(18px,1.7vw,24px)}
+  .rf-input .convert-entry span{font-size:11px}
+  .rf-input.wide{grid-column:1/-1}
+  .rf-result{margin-top:14px;padding:14px;background:linear-gradient(100deg,#163440,#13283a);border:1px solid #436779;border-radius:12px}
+  .rf-result-label{font-size:10px;font-weight:850;color:#9bb7ca;letter-spacing:.11em}
+  .rf-result-main{font:850 clamp(23px,2vw,32px)/1.25 ui-monospace,SFMono-Regular,Consolas,monospace;color:#84edd7;margin-top:7px;overflow-wrap:anywhere}
+  .rf-result-secondary{font-size:12px;color:#d0e3ed;font-weight:750;margin-top:8px;overflow-wrap:anywhere}
+  .rf-tool-status{font-size:10px;color:#8cb4c6;line-height:1.6;margin-top:10px;min-height:15px}
+  .rf-tool-status.error{color:#ff999e}
+  .ratio-inline{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:space-between}
+  .ratio-inline .rf-result-main{margin:0}
+  .ratio-facts{font-size:11px;color:#cadfea;margin-top:10px;line-height:1.55}
+  @media(max-width:1100px){.rf-extra-grid{grid-template-columns:1fr}}
+  @media(max-width:820px){.conversion-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:690px){.convert-section{margin-top:12px}.convert-head{padding:12px}.convert-title{gap:8px}.convert-title h2{font-size:12px}.convert-pill{padding:9px 10px}.convert-body{padding:12px}.conversion-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.convert-field{padding:11px 9px}.convert-field>label{font-size:10px}.convert-entry input{font-size:clamp(16px,4.8vw,22px)}.convert-entry span{font-size:10px}.convert-field small{font-size:9px}.rf-extra-grid{margin-top:16px;gap:12px}.rf-tool-head{padding:13px}.rf-tool-body{padding:12px}.rf-input-grid{gap:8px}.rf-input{padding:11px 9px}.rf-input .convert-entry input{font-size:clamp(16px,4.8vw,22px)}.impedance-caption{font-size:10px}}
+  @media(max-width:345px){.conversion-grid{grid-template-columns:1fr}}
+  /* v1.5: two matching clickable engineering-tool page tiles */
+  .app>header{display:block;margin-bottom:20px}
+  .page-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .page-tile{min-width:0;display:flex;align-items:center;text-align:left;gap:15px;padding:17px 22px;border:1px solid #344b61;border-radius:18px;background:linear-gradient(150deg,#182638e8,#101b2ce8);color:var(--txt);box-shadow:var(--shadow);cursor:pointer;font:inherit;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s}
+  .page-tile:hover{transform:translateY(-1px);border-color:#6094b6}
+  .page-tile[aria-selected="true"]{border-color:#429688;background:linear-gradient(140deg,#1b3f46,#142637);box-shadow:0 0 0 1px #48d3b01d,var(--shadow)}
+  #navModcod[aria-selected="true"]{border-color:#5cb6f4;background:linear-gradient(140deg,#1b344d,#14283b);box-shadow:0 0 0 1px #4cbeff25,var(--shadow)}
+  .page-logo{display:grid;place-items:center;width:61px;height:61px;flex:none;border:1px solid #427e7c;border-radius:17px;background:linear-gradient(145deg,#183d47,#15293b);color:#60eacf}
+  .page-logo svg{width:37px;height:37px}
+  #navModcod .page-logo{border-color:#3c7096;background:linear-gradient(145deg,#1a4161,#112c48);color:#76cfff}
+  .nav-eyebrow{font-size:10px;letter-spacing:.17em;text-transform:uppercase;font-weight:900;color:#78d9cc;margin-bottom:4px}
+  #navModcod .nav-eyebrow{color:#93c9ee}
+  .nav-name{font-weight:900;font-size:clamp(19px,2.55vw,34px);letter-spacing:-.04em;line-height:1.05}
+  .nav-name em{color:#77ead7;font-style:normal}
+  #navModcod .nav-name em{color:#82d5ff}
+  .nav-note{font-size:10px;line-height:1.4;color:#92b0c6;margin-top:6px}
+  .nav-arrow{font-size:21px;color:#83b2c9;margin-left:auto;align-self:center;flex:none}
+  .tile-selected{display:block;font-size:10px;letter-spacing:.08em;margin-top:8px;font-weight:850;color:#86e5ce}
+  #navModcod .tile-selected{color:#88d9ff}
+  .app-status{display:flex;justify-content:flex-end;margin-top:10px;margin-bottom:4px}
+  [hidden]{display:none!important}
+  body.mod-theme{--accent:#80cdff;--line:#33577b}
+  body.mod-theme{background:radial-gradient(ellipse 85% 62% at 12% -9%,#153450 0%,transparent 74%),radial-gradient(ellipse 75% 72% at 100% 105%,#132b4e 0%,transparent 75%),var(--bg)}
+  body.mod-theme .status{color:#d0e9f7;border-color:#3b739c;background:#173b5b70}
+  body.mod-theme .dot{background:#80cfff;box-shadow:0 0 12px #77cfff}
+  /* The modulation page uses the original dark industrial background with blue-accented panels. */
+  .mod-area{color:var(--txt);--mblue:#84d7ff;--mcyan:#6dbde9;--mline:#365977;--mmuted:#9bb9d0;--mpanel:#101e30}
+  .mod-head{display:flex;align-items:start;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid #3a6586;padding:23px 25px;border-radius:20px;background:linear-gradient(115deg,#1a3a55,#101d32 66%);box-shadow:var(--shadow);margin-bottom:18px}
+  .mod-eyebrow{font-size:11px;letter-spacing:.16em;font-weight:850;color:#83d5ff}
+  .mod-head h2{font-size:clamp(22px,3.3vw,40px);margin:9px 0 8px;letter-spacing:-.025em}
+  .mod-head p{font-size:12px;line-height:1.65;color:#aec6d9;max-width:930px;margin:0}
+  .mod-head .mod-version{border:1px solid #477998;background:#193e57;padding:11px 15px;border-radius:12px;color:#b3e5ff;font-size:11px;font-weight:900;letter-spacing:.08em;white-space:nowrap}
+  .mod-section{border:1px solid var(--mline);border-radius:19px;background:linear-gradient(145deg,#172639,#0e1b2af2);box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px}
+  .mod-section-head{padding:17px 22px;border-bottom:1px solid #37536d;background:linear-gradient(90deg,#193a55,#1a3045bb);display:flex;gap:13px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .mod-section-title{display:flex;gap:13px;align-items:center;flex-wrap:wrap}
+  .mod-pill{color:#b2e7ff;background:#1d4b6b;border:1px solid #4da1d4;border-radius:9px;padding:9px 13px;font-size:12px;letter-spacing:.10em;font-weight:900}
+  .mod-section-head h3{margin:0;font-size:14px;letter-spacing:.08em}
+  .mod-section-head small{color:#abc3d5;font-size:11px;line-height:1.5}
+  .mod-body{padding:22px}
+  .mod-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .mod-field{min-width:0;border:1px solid #3e5c75;border-radius:13px;background:#0e1c2d;padding:14px 15px 12px}
+  .mod-field:focus-within{border-color:#80d3ff;background:#122c43}
+  .mod-field label{color:#bed8e9;font-size:11px;font-weight:850;letter-spacing:.085em;display:block;margin-bottom:12px}
+  .mod-field select,.mod-field input{min-width:0;width:100%;height:40px;background:#142c42;border:1px solid #456780;color:#f1fbff;border-radius:8px;padding:7px 10px;outline:none;font:750 clamp(14px,1.4vw,18px)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace}
+  .mod-field input:focus-visible,.mod-field select:focus-visible{border-color:#92dfff;outline:2px solid #84d7ff66;outline-offset:1px}
+  .mod-field select{font-family:inherit;font-weight:800;cursor:pointer}
+  .mod-field small{display:block;color:#829fb6;font-size:10px;line-height:1.45;margin-top:8px;min-height:13px}
+  .mod-field.readonly{opacity:.64}
+  .mod-row-input{display:flex;align-items:center;gap:9px}
+  .mod-row-input .u{font-weight:850;color:#7ed6ff;font-size:12px}
+  .pilot-switch{display:inline-flex;align-items:center;gap:13px;cursor:pointer;width:100%;height:40px;user-select:none}
+  .pilot-switch input{position:absolute;opacity:0;width:1px;height:1px}
+  .pilot-track{display:block;width:57px;height:30px;background:#334960;border:1px solid #56738b;border-radius:30px;position:relative;transition:.16s;flex:none}
+  .pilot-track::after{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;border-radius:50%;background:#b9c8d3;box-shadow:0 2px 5px #0007;transition:.16s}
+  .pilot-switch input:checked+.pilot-track{background:#267aa9;border-color:#86cfff}
+  .pilot-switch input:checked+.pilot-track::after{background:#c1efff;transform:translateX(27px)}
+  .pilot-switch input:focus-visible+.pilot-track{outline:2px solid #91d7ff;outline-offset:2px}
+  .pilot-word{font-weight:900;font-size:16px;color:#9dc7db}
+  .pilot-switch input:checked~.pilot-word{color:#88dfff}
+  .mod-inline-hint{margin-top:15px;padding:10px 14px;color:#a9c6da;font-size:11px;line-height:1.6;border-radius:10px;border:1px solid #31516d;background:#122940}
+  .mod-inline-hint strong{color:#d3edfb}
+  .mod-inline-hint.error{background:#402b31;border-color:#a36265;color:#ffd1d1}
+  .mod-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .mod-result-card{border:1px solid #477794;border-radius:16px;padding:22px 23px;background:linear-gradient(130deg,#183d56,#102537)}
+  .mod-result-card.bw{border-color:#4678a8;background:linear-gradient(130deg,#1a3652,#122439)}
+  .mod-result-kicker{color:#a2cde3;font-size:11px;font-weight:850;letter-spacing:.15em}
+  .mod-value{font:900 clamp(28px,4vw,61px)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.055em;color:#91e2ff;overflow-wrap:anywhere;margin:10px 0 5px}
+  .mod-result-card.bw .mod-value{color:#add0ff}
+  .mod-value span{font-size:clamp(14px,1.9vw,24px);color:#c9e3f4;letter-spacing:0}
+  .mod-result-card p{font-size:11px;color:#a8c4d7;line-height:1.65;margin:5px 0 0}
+  .mod-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+  .mod-metric{background:#0c1c2d;border:1px solid #3b5872;border-radius:11px;padding:13px}
+  .mod-metric span{display:block;color:#a6c4d8;font-size:10px;letter-spacing:.07em;font-weight:850;margin-bottom:9px}
+  .mod-metric strong{font:850 clamp(14px,1.45vw,20px)/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;color:#e1f4ff;overflow-wrap:anywhere}
+  .mod-spectrum{padding:15px 20px 20px}
+  .mod-spec-scroll{overflow-x:auto;scrollbar-color:#496e8b transparent}
+  #modSpectrum{width:100%;min-width:650px;height:auto;display:block}
+  .mod-spectrum-note{color:#8fabbe;font-size:11px;line-height:1.65;margin-top:8px}
+  .mod-equations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .mod-equation{background:#0d1e31;border:1px solid #375a75;padding:15px 17px;border-radius:12px;min-width:0}
+  .mod-equation strong{color:#9bdfff;font-size:12px;letter-spacing:.05em}
+  .mod-equation p{color:#c0d7e8;line-height:1.7;font-size:12px;margin:9px 0 0}
+  .mod-source{font-size:11px;color:#93b5cc;line-height:1.75;margin:16px 0 0}
+  .mod-source a{color:#a5e2ff;text-underline-offset:3px;overflow-wrap:anywhere}
+  .mod-controls-row{display:flex;justify-content:flex-end;margin-top:14px}
+  .mod-reset{border:1px solid #4a7290;color:#cbebfc;background:#213b54;padding:12px 17px;border-radius:10px;cursor:pointer;letter-spacing:.07em;font-weight:850;font-size:11px}
+  @media(max-width:950px){.page-tile{padding:14px 13px;gap:9px}.page-logo{width:49px;height:49px}.page-logo svg{width:30px;height:30px}.nav-name{font-size:clamp(17px,2.7vw,27px)}.nav-arrow{display:none}.mod-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:690px){.page-nav{gap:8px}.page-tile{padding:10px 8px;border-radius:13px;gap:7px}.page-logo{width:32px;height:38px;border-radius:9px}.page-logo svg{width:24px;height:24px}.nav-eyebrow{font-size:7px;letter-spacing:.09em}.nav-name{font-size:clamp(13px,4vw,18px)}.nav-note{display:none}.tile-selected{font-size:8px;margin-top:5px}.app-status{margin-top:7px}.mod-head{padding:17px 14px;margin-bottom:12px}.mod-head h2{font-size:24px}.mod-head p{font-size:11px}.mod-head .mod-version{padding:8px}.mod-section{margin-bottom:12px}.mod-section-head{padding:13px}.mod-section-title{gap:8px}.mod-section-head h3{font-size:12px}.mod-pill{padding:8px}.mod-body{padding:12px}.mod-inputs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mod-field{padding:12px 9px}.mod-field label{font-size:10px;letter-spacing:.04em}.mod-field select,.mod-field input{font-size:14px;padding:6px}.mod-field small{font-size:9px}.mod-results{grid-template-columns:1fr;gap:9px}.mod-result-card{padding:16px}.mod-value{font-size:38px}.mod-metrics{gap:7px}.mod-metric{padding:12px 10px}.mod-metric span{font-size:9px}.mod-spectrum{padding:10px}.mod-equations{grid-template-columns:1fr}.mod-section-head small{font-size:10px}}
+  @media(max-width:360px){.page-logo{display:none}.page-tile{padding:11px 8px}.nav-name{font-size:15px}.mod-inputs{grid-template-columns:1fr}.mod-field{padding:13px 12px}}
+
+
+/* v1.6 · analyzer trace, link margins, IQ constellation · blue theme */
+.rf16-panel{padding:19px 20px 18px}
+.rf16-controls{display:grid;grid-template-columns:minmax(200px,1.4fr) repeat(2,minmax(125px,1fr));gap:12px;margin-bottom:14px}
+.rf16-control{background:#0d2034;border:1px solid #426785;border-radius:13px;padding:12px 13px;min-width:0}
+.rf16-control label{display:block;color:#bcdaed;font-size:10px;letter-spacing:.08em;font-weight:850;margin-bottom:10px}
+.rf16-control small{color:#91b0c8;line-height:1.5;font-size:10px;display:block;margin-top:8px}
+.rf16-flex{display:flex;gap:10px;align-items:center;min-width:0}
+.rf16-flex input[type=range]{width:100%;flex:1;accent-color:#7fd6ff;cursor:pointer;height:32px;min-width:42px}
+.rf16-flex input[type=text]{width:87px;flex:none;padding:8px 6px;text-align:right;border-radius:7px;border:1px solid #4b7698;background:#152e44;color:#edfaff;font:bold 16px ui-monospace,SFMono-Regular,Consolas,monospace}
+.rf16-control .rf16-flex input[aria-invalid=true]{border-color:#ff888e;background:#53262d}
+.rf16-unit{white-space:nowrap;color:#8edfff;font-size:12px;font-weight:800}
+.rf16-number{font:bold 19px ui-monospace,SFMono-Regular,Consolas,monospace;color:#a5e4ff;white-space:nowrap}
+.rf16-tiny{color:#85a9c2;font-size:10px;line-height:1.5}
+.rf16-spec-box{background:#091522;border:1px solid #395a76;border-radius:12px;overflow:hidden}
+#modSpectrum{min-width:640px;display:block;width:100%;height:auto;cursor:crosshair;touch-action:pan-y}
+.rf16-markers{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.rf16-marker{display:flex;align-items:center;gap:9px;border:1px solid #3d6581;background:#0d2034;border-radius:10px;padding:11px 13px;min-width:178px;flex:1}
+.rf16-marker i{width:9px;height:9px;flex:none;background:#8fe1ff;box-shadow:0 0 10px #8fe1ff99;border-radius:50%}
+.rf16-marker.noise i{background:#f1bd77;box-shadow:0 0 10px #f1bd7788}
+.rf16-marker.delta i{background:#a2efce;box-shadow:0 0 10px #a2efce88}
+.rf16-marker small{display:block;font-size:9px;font-weight:850;letter-spacing:.08em;color:#94b8d0;margin-bottom:4px}
+.rf16-marker b{color:#e6f7ff;font:bold 17px ui-monospace,SFMono-Regular,Consolas,monospace}
+.rf16-minibar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.rf16-status{border:1px solid #427c84;border-radius:9px;background:#173c3e;padding:10px 13px;color:#a9f5d9;font-size:11px;font-weight:800;flex:1;line-height:1.55}
+.rf16-status.fail{border-color:#ab515e;color:#ffc4c9;background:#46242d}
+.rf16-minibar button{border:1px solid #5a8caf;color:#c6e9fc;background:#214260;padding:10px 12px;border-radius:9px;cursor:pointer;font-weight:850;font-size:10px}
+.rf16-minibar button:hover{background:#2b5578}
+.rf16-table-scroll{overflow-x:auto;scrollbar-color:#496e8b transparent}
+.rf16-quality{border-collapse:collapse;width:100%;min-width:620px;font-size:12px;font-variant-numeric:tabular-nums}
+.rf16-quality th{color:#a7d5eb;padding:13px 12px;background:#16344d;text-align:right;white-space:nowrap;font-size:10px;letter-spacing:.04em}
+.rf16-quality th:first-child,.rf16-quality td:first-child{text-align:left}
+.rf16-quality td{padding:13px 12px;text-align:right;border-bottom:1px solid #2c4b63;color:#d3e7f3;white-space:nowrap}
+.rf16-quality tbody tr:last-child td{border-bottom:0}
+.rf16-quality td:first-child{color:#c4e2f3;font-weight:800}
+.rf16-quality td:nth-child(3){color:#9bdfff;font-weight:900}
+.rf16-quality tr.rf16-difference td{background:#16394a}
+.rf16-positive{color:#a1ffce!important}.rf16-negative{color:#ffadb9!important}
+.rf16-table-info{margin-top:13px;color:#93b7cc;font-size:11px;line-height:1.75}
+.rf16-legend{display:flex;flex-wrap:wrap;gap:9px 20px;color:#a5c8dc;font-size:11px;margin-top:10px}
+.rf16-legend b{color:#cdeeff}
+.rf16-const-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(235px,.70fr);gap:18px;align-items:start}
+.rf16-iq-shell{width:100%;box-sizing:border-box;max-width:590px;margin:0 auto;background:#081522;border:1px solid #3c6180;border-radius:14px;padding:8px;overflow:hidden}
+#rf16Constellation{display:block;width:100%;height:auto;aspect-ratio:1/1}
+.rf16-iq-detail{background:#0c2135;border:1px solid #355d7b;border-radius:14px;padding:17px}
+.rf16-iq-detail h4{font-size:13px;letter-spacing:.08em;color:#9bdaff;margin:0 0 16px}
+.rf16-iq-row{margin-bottom:14px;padding-bottom:13px;border-bottom:1px solid #2a4d66}
+.rf16-iq-row small{display:block;color:#99b8cf;font-size:10px;font-weight:850;letter-spacing:.06em;margin-bottom:6px}
+.rf16-iq-row strong{font:850 22px ui-monospace,SFMono-Regular,Consolas,monospace;color:#e7f7ff}
+.rf16-iq-note{color:#a9c4d6;font-size:11px;line-height:1.8}
+@media(max-width:760px){.rf16-controls{grid-template-columns:1fr 1fr}.rf16-control:first-child{grid-column:1/-1}.rf16-const-layout{grid-template-columns:1fr}.rf16-iq-detail{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rf16-iq-detail h4,.rf16-iq-note{grid-column:1/-1}.rf16-iq-row{margin:0;padding:0}.rf16-panel{padding:12px}.rf16-marker{min-width:140px}}
+@media(max-width:440px){.rf16-controls{grid-template-columns:1fr}.rf16-control:first-child{grid-column:auto}.rf16-marker{min-width:100%;padding:9px 10px}.rf16-iq-detail{grid-template-columns:1fr 1fr}.rf16-quality{font-size:11px}.rf16-minibar button{width:100%}}
+
+
+/* v1.8: larger analyzer display, centered FC, variable span */
+.rf16-controls{grid-template-columns:minmax(210px,1.5fr) repeat(3,minmax(146px,1fr))}
+.rf17-span-control .rf16-flex input[type=text]{width:calc(100% - 57px);max-width:132px}
+.rf17-span-buttons{display:flex;gap:5px;margin-top:9px}
+.rf17-span-buttons button{flex:1;white-space:nowrap;padding:8px 4px;border-radius:7px;border:1px solid #497998;background:#1b405b;color:#caecff;font:800 10px ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+.rf17-span-buttons button:hover{background:#2c5d80;border-color:#74b4df}
+.rf17-view-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 10px}
+.rf17-view-strip>div{background:#0a2032;border:1px solid #345c76;border-radius:9px;padding:10px;min-width:0}
+.rf17-view-strip small{display:block;color:#94b9cf;font-weight:850;font-size:9px;letter-spacing:.10em;margin-bottom:7px}
+.rf17-view-strip strong{display:block;color:#d8f5ff;font:850 clamp(10px,1.05vw,14px)/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.rf17-view-strip>div:nth-child(2){border-color:#57a7cf;background:#12364d}
+.rf17-view-strip>div:nth-child(2) strong{color:#96e6ff}
+#modSpectrum{min-width:640px}
+@media(max-width:1010px){.rf16-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.rf16-control:first-child{grid-column:auto}}
+@media(max-width:600px){.rf17-view-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.rf17-view-strip strong{font-size:12px}}
+@media(max-width:440px){.rf16-controls{grid-template-columns:1fr}.rf17-span-control .rf16-flex input[type=text]{width:110px}}
+
+
+/* v1.8: accessible full-span spectrum navigation, touch swipe + desktop drag */
+.rf18-spectrum-scroll{overflow-x:auto;overflow-y:hidden;max-width:100%;min-width:0;overscroll-behavior-inline:contain;scrollbar-width:thin;scrollbar-color:#517d9c #0c2235;-webkit-overflow-scrolling:touch}
+.rf18-spectrum-scroll::-webkit-scrollbar{height:7px}
+.rf18-spectrum-scroll::-webkit-scrollbar-thumb{background:#507f9e;border-radius:20px}
+.rf18-spectrum-scroll::-webkit-scrollbar-track{background:#0c2235}
+.rf18-spectrum-scroll #modSpectrum{min-width:900px;width:100%;touch-action:pan-x pan-y;cursor:crosshair}
+.rf18-spectrum-scroll.rf18-dragging #modSpectrum{cursor:grabbing;user-select:none}
+.rf18-pan-panel{border:1px solid #416e8c;background:linear-gradient(120deg,#10263a,#0e1e30);padding:12px 14px;margin-top:10px;border-radius:11px;min-width:0}
+.rf18-pan-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:9px}
+.rf18-pan-head strong{color:#a3e3ff;font-size:11px;letter-spacing:.09em;font-weight:900}
+.rf18-pan-head span{color:#a0c3d7;font-size:10px}
+.rf18-pan-layout{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;min-width:0}
+.rf18-pan-layout button{background:#1a415c;border:1px solid #4e83a5;border-radius:8px;color:#d4efff;font:850 12px ui-sans-serif,system-ui,sans-serif;padding:10px 12px;cursor:pointer;white-space:nowrap}
+.rf18-pan-layout button:disabled{opacity:.38;cursor:default}
+#rf18Pan{--rf18-track:50%;width:100%;margin:0;min-width:0;height:22px;appearance:none;-webkit-appearance:none;background:transparent;cursor:ew-resize;touch-action:none}
+#rf18Pan::-webkit-slider-runnable-track{height:8px;border-radius:30px;border:1px solid #3b6685;background:linear-gradient(90deg,#6bbfea 0%,#6bbfea var(--rf18-track),#213e57 var(--rf18-track),#213e57 100%)}
+#rf18Pan::-moz-range-track{height:8px;border-radius:30px;border:1px solid #3b6685;background:#284b65}
+#rf18Pan::-moz-range-progress{height:8px;background:#6bbfea;border-radius:30px}
+#rf18Pan::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:25px;height:25px;border-radius:8px;background:#8be4ff;border:3px solid #15344b;margin-top:-9px;box-shadow:0 0 0 2px #5899bc}
+#rf18Pan::-moz-range-thumb{width:20px;height:20px;border:3px solid #15344b;border-radius:8px;background:#8be4ff}
+#rf18Pan:disabled{opacity:.45;cursor:default}
+.rf18-pan-caption{margin-top:9px;display:flex;justify-content:space-between;gap:5px;color:#80a9c2;font-weight:800;font-size:10px}
+.rf18-pan-readout{margin-top:8px;color:#afcede;font:750 11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+@media(max-width:540px){.rf18-pan-panel{padding:10px}.rf18-pan-head span{font-size:9px}.rf18-pan-layout{grid-template-columns:auto minmax(0,1fr) auto;gap:8px}.rf18-pan-layout button{padding:9px 11px}.rf18-pan-center{grid-column:1/-1;justify-self:stretch}.rf18-pan-caption{font-size:9px}}
+</style>
+
+<!-- PWA shell for canonical RF Measurement Tools v1.8. Engineering logic remains unchanged. -->
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="64x64" href="./icons/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+<meta name="application-name" content="RF Measurement Tools">
+<meta name="description" content="RF Power Meter и Frequency & MOD COD — автономная инженерная RF-лаборатория.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RF Tools">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+/* Minimal PWA-only presentation; original v1.8 CSS and calculations are preserved. */
+.app-status{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.pwa-install{border:1px solid #4d938d;background:linear-gradient(125deg,#183e45,#162b3d);border-radius:10px;color:#a9f8e8;padding:9px 13px;min-height:36px;font:800 11px/1.25 ui-sans-serif,system-ui,sans-serif;cursor:pointer;letter-spacing:.04em;white-space:nowrap}
+body.mod-theme .pwa-install{border-color:#558db6;background:linear-gradient(125deg,#193750,#172d46);color:#9bdcff}
+.pwa-install:hover{filter:brightness(1.15)}
+.pwa-install:focus-visible,.pwa-dialog button:focus-visible{outline:2px solid #84d9ff;outline-offset:2px}
+.pwa-dialog{width:min(92vw,475px);max-height:85vh;padding:25px;border:1px solid #477f88;border-radius:18px;background:#122133;color:#eaf4ff;box-shadow:0 24px 80px #000b;font:14px/1.6 ui-sans-serif,system-ui,sans-serif}
+.pwa-dialog::backdrop{background:rgba(2,8,16,.76)}
+.pwa-dialog h2{margin:0 0 8px;font-size:23px;color:#9af2e0}
+.pwa-dialog p{margin:8px 0;color:#b5cddd}
+.pwa-dialog .pwa-steps{margin:12px 0;padding:13px 15px;border-radius:11px;border:1px solid #315970;background:#0c1a2b;white-space:pre-line;color:#e1f1ff}
+.pwa-dialog footer{display:flex;justify-content:flex-end;margin-top:16px}
+.pwa-dialog button{padding:9px 18px;border:1px solid #5e9caa;border-radius:9px;background:#214b61;color:#e9ffff;font:750 12px ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+@media(max-width:690px){.pwa-install{font-size:10px;min-height:32px;padding:7px 11px}.app-status{gap:7px}.pwa-dialog{padding:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <nav class="page-nav" role="tablist" aria-label="Страницы RF Measurement Tools">
+      <button id="navPower" class="page-tile" type="button" role="tab" aria-selected="true" aria-controls="pagePower">
+        <div class="page-logo" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none"><path d="M3 18h6l3-10 6 21 5-16 3 5h7" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><div class="nav-eyebrow">RF MEASUREMENT TOOLS</div><div class="nav-name">RF <em>POWER</em> METER</div><div class="nav-note">W / dBm · VSWR · EIRP · RF conversion</div><span class="tile-selected">● RF POWER</span></div><span class="nav-arrow" aria-hidden="true">↗</span>
+      </button>
+      <button id="navModcod" class="page-tile" type="button" role="tab" aria-selected="false" aria-controls="pageModcod">
+        <div class="page-logo" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none"><path d="M4 29V8 M4 29h28 M8 23l6-9 7 4 10-13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="31" cy="5" r="2.3" fill="currentColor"/></svg></div>
+        <div><div class="nav-eyebrow">SATELLITE SYSTEM TOOLS</div><div class="nav-name">FREQUENCY <em>&amp; MOD COD</em></div><div class="nav-note">DVB-S / S2 / S2X · Symbol Rate · Bandwidth</div><span class="tile-selected">● MODULATION / BITRATE</span></div><span class="nav-arrow" aria-hidden="true">↗</span>
+      </button>
+    </nav>
+    <div class="app-status"><button type="button" id="pwaInstall" class="pwa-install" aria-label="Установить веб-приложение на устройство">↧ УСТАНОВИТЬ</button><span class="status"><span class="dot"></span>RF ENGINEERING LAB · v1.8</span></div>
+  </header>
+  <div id="pagePower" role="tabpanel" aria-labelledby="navPower">
+  <main class="main-grid">
+    <div class="inputs">
+      <section class="input-card" aria-labelledby="power-heading">
+        <div class="field-header">
+          <span class="field-label" id="power-heading">МОЩНОСТЬ</span>
+          <div class="unit-toggle" role="group" aria-label="Единица вводимой мощности"><button type="button" id="unitW" class="active" aria-pressed="true">W</button><button type="button" id="unitMw" aria-pressed="false">mW</button></div>
+        </div>
+        <p class="field-subtitle">Быстрый ввод · шаг 0.01</p>
+        <div class="entry"><input id="wattsInput" type="text" inputmode="decimal" aria-label="Мощность в ваттах или милливаттах" spellcheck="false" value="000.00"><span id="wattsSuffix" class="suffix">W</span></div>
+        <div class="micro-row"><span>Входной сигнал</span><div class="stepper"><button type="button" data-step="watts" data-direction="-1" aria-label="Уменьшить мощность на 0.01">−</button><button type="button" data-step="watts" data-direction="1" aria-label="Увеличить мощность на 0.01">+</button></div></div>
+      </section>
+      <section class="input-card" aria-labelledby="dbm-heading">
+        <div class="field-header"><span class="field-label" id="dbm-heading">УРОВЕНЬ СИГНАЛА</span><span class="small-tag">dBm</span></div>
+        <p class="field-subtitle">Быстрый ввод · шаг 0.01 dB</p>
+        <div class="entry"><input id="dbmInput" type="text" inputmode="decimal" aria-label="Уровень мощности в dBm" spellcheck="false" value="−∞"><span class="suffix">dBm</span></div>
+        <div class="micro-row"><span>Входной сигнал</span><div class="stepper"><button type="button" data-step="dbm" data-direction="-1" aria-label="Уменьшить уровень на 0.01 dBm">−</button><button type="button" data-step="dbm" data-direction="1" aria-label="Увеличить уровень на 0.01 dBm">+</button></div></div>
+      </section>
+    </div>
+    <section class="meter-card" aria-label="Шкала RF мощности">
+      <div class="meter-top">
+        <div><div class="overline">МОЩНОСТЬ ПОСЛЕ ATTENTION И ПОТЕРЬ РАССОГЛАСОВАНИЯ</div><div class="readout"><span id="correctedPower">000.00</span><span class="main-unit">W</span><span id="correctedDbm">−∞ dBm</span></div></div>
+        <div class="range-state" id="rangeState" role="status">● В ДИАПАЗОНЕ</div>
+      </div>
+      <div class="ruler-head"><span>ВЕРХНЯЯ ШКАЛА · W</span><span class="scroll-hint">↔ Сдвиньте для просмотра</span><span>0—1000 W · ШАГ 10 W</span></div>
+      <div class="ruler-scroll" id="rulerScroll">
+        <svg id="ruler" viewBox="0 0 1240 229" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Горизонтальная линейка мощности, принятой нагрузкой, от 0 до 1000 ватт с нижней шкалой децибел-милливатт">
+          <defs>
+            <linearGradient id="powerGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#19d46c"/><stop offset="23%" stop-color="#64d94d"/><stop offset="45%" stop-color="#c9df4e"/><stop offset="62%" stop-color="#ffe253"/><stop offset="80%" stop-color="#ff9b3d"/><stop offset="100%" stop-color="#ff4c60"/></linearGradient>
+            <filter id="glow"><feGaussianBlur stdDeviation="4"/></filter>
+          </defs>
+          <g id="wattTicks"></g>
+          <rect class="bar-bg" x="65" y="88" rx="8" ry="8" width="1110" height="25" fill="url(#powerGradient)"/>
+          <rect x="65" y="88" rx="8" ry="8" width="1110" height="25" fill="none" stroke="#ffffff65" stroke-width="1"/>
+          <g id="dbmTicks"></g>
+          <g id="pointer" aria-hidden="true">
+            <line id="pointerLine" x1="65" x2="65" y1="46" y2="157"/>
+            <circle id="pointerCircle" cx="65" cy="100.5" r="11" fill="#f4fbff" opacity=".2" stroke="white" stroke-width="1.5"/>
+            <circle id="pointerCenter" cx="65" cy="100.5" r="4" fill="#092331"/>
+            <path id="pointerTriangle" d="M55 49 L75 49 L65 66 Z" fill="#fff"/>
+          </g>
+          <text x="65" y="217" font-size="13" font-weight="800" fill="#a3b8c9" letter-spacing="2">dBm</text>
+          <text x="1175" y="217" text-anchor="end" font-size="11" font-weight="600" fill="#829eb4">0 W = −∞ dBm</text>
+          <rect id="hitbox" x="65" y="76" width="1110" height="90" fill="transparent" style="cursor:crosshair;touch-action:pan-x" aria-hidden="true"/>
+        </svg>
+      </div>
+      <div class="legend"><span>МИНИМУМ</span><div class="rainbow" aria-hidden="true"></div><span>МАКСИМУМ · 1000 W</span></div>
+    </section>
+    <section class="attenuation-panel" aria-label="Поправка на затухание">
+      <div><h2>ATTENTION <span style="color:#8aa8bd;font-size:11px">/ ATTENUATION</span></h2><p>Затухание, dB. Положительное значение вычитается из входного уровня dBm и уменьшает мощность на шкале.</p></div>
+      <div class="att-field"><input id="attenuationInput" type="text" inputmode="decimal" aria-label="Поправка затухания в децибелах" spellcheck="false" value="00.00"><span>dB</span></div>
+      <button type="button" class="reset" id="resetBtn">↺ СБРОСИТЬ</button>
+    </section>
+  </main>
+  <section class="vswr-section" id="vswrPanel" aria-label="Вкладка расчёта коэффициента стоячей волны">
+    <div class="vswr-top">
+      <div class="vswr-title"><span class="vswr-tab">VSWR / КСВ</span><h2>РАСЧЁТ ПО ОТРАЖЁННОЙ МОЩНОСТИ</h2></div>
+      <span class="vswr-tag">P<sub>FWD</sub> — после ATTENTION, до вычета отражения · шкала показывает мощность, принятую нагрузкой</span>
+    </div>
+    <div class="vswr-body">
+      <div class="vswr-layout">
+        <div class="reflected-col">
+          <h3 class="vswr-subtitle">ОТРАЖЁННАЯ МОЩНОСТЬ · P<sub>REF</sub></h3>
+          <p class="vswr-caption">Введите измеренную отражённую мощность в W / mW или dBm. Поля связаны автоматически.</p>
+          <div class="reflected-controls">
+            <div class="reflect-field">
+              <div class="reflect-label"><span>МОЩНОСТЬ</span><div class="vswr-mini-toggle" role="group" aria-label="Единицы отражённой мощности"><button type="button" class="active" id="refUnitW" aria-pressed="true">W</button><button type="button" id="refUnitMw" aria-pressed="false">mW</button></div></div>
+              <div class="reflect-entry"><input id="reflectedWatts" aria-label="Отражённая мощность в ваттах или милливаттах" type="text" inputmode="decimal" spellcheck="false" value="0.00"><span id="reflectedSuffix">W</span></div>
+            </div>
+            <div class="reflect-field">
+              <div class="reflect-label"><span>УРОВЕНЬ</span><span>dBm</span></div>
+              <div class="reflect-entry"><input id="reflectedDbm" aria-label="Отражённая мощность в dBm" type="text" inputmode="decimal" spellcheck="false" value="−∞"><span>dBm</span></div>
+            </div>
+          </div>
+          <div class="incident-line"><span>ПАДАЮЩАЯ МОЩНОСТЬ · P<sub>FWD</sub></span><strong id="incidentReadout">0.00 W / −∞ dBm</strong></div>
+        </div>
+        <div class="vswr-results" aria-live="polite">
+          <div class="vswr-primary"><div><div class="overline">КОЭФФИЦИЕНТ СТОЯЧЕЙ ВОЛНЫ</div><div class="vswr-value"><span id="vswrValue">—</span><span class="vswr-unit">: 1</span></div></div><div class="vswr-state warn" id="vswrState">НЕТ ПАДАЮЩЕЙ МОЩНОСТИ</div></div>
+          <div class="vswr-danger" id="vswrDanger" role="alert" hidden></div>
+          <div class="vswr-indicators">
+            <div class="vswr-metric"><label>RETURN LOSS</label><strong id="returnLoss">— dB</strong></div>
+            <div class="vswr-metric"><label>MISMATCH LOSS <span style="color:#ffe0a1">↓</span></label><strong class="highlight" id="mismatchLoss">— dB</strong></div>
+            <div class="vswr-metric"><label>|Γ| · ОТРАЖЕНИЕ</label><strong id="gammaValue">—</strong></div>
+            <div class="vswr-metric"><label>ОТРАЖЕНО МОЩНОСТИ</label><strong id="reflectedPercent">— %</strong></div>
+          </div>
+          <div class="mismatch-summary"><span>МОЩНОСТЬ, ПРИНЯТАЯ НАГРУЗКОЙ · P<sub>LOAD</sub> = P<sub>FWD</sub> − P<sub>REF</sub></span><strong id="loadReadout">— W</strong></div>
+          <div class="ratio-track" role="progressbar" aria-label="Доля отражённой мощности" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="ratioTrack"><div class="ratio-fill" id="ratioFill"></div></div>
+          <div class="ratio-note"><span>0% · идеальное согласование</span><span class="threshold-label">ПОРОГ 10% <span aria-hidden="true">▲</span></span><span>100% · полное отражение</span></div>
+          <p class="vswr-help" id="vswrHelp">Return Loss характеризует отражение. Из итогового уровня вычитаются только потери рассогласования (Mismatch Loss), вычисленные через Return Loss: ML = −10 log₁₀(1 − 10<sup>−RL/10</sup>).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="group-section" id="groupPanel" aria-labelledby="groupHeading">
+    <div class="group-top"><div class="group-title"><span class="group-tab">Σ RF · GROUP</span><h2 id="groupHeading">РАСЧЁТ ГРУППОВОГО СПЕКТРА</h2></div><span class="group-tag">НЕЗАВИСИМЫЙ РАСЧЁТ · 10 СИГНАЛОВ + ДОП. МОЩНОСТЬ</span></div>
+    <div class="group-body">
+      <p class="group-intro">Введите уровни отдельных несущих в dBm. Пустое поле не учитывается. <strong>Суммируются линейные мощности в W, а не значения dBm.</strong> Этот расчёт не влияет на RF Power Meter и VSWR выше.</p>
+      <div class="group-channels">
+        <div class="group-signal" id="groupCard1"><div class="group-signal-top"><label for="groupSignal1">СИГНАЛ 01</label><output id="groupShare1">—</output></div><div class="group-entry"><input id="groupSignal1" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 1, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar1"></div></div></div>
+        <div class="group-signal" id="groupCard2"><div class="group-signal-top"><label for="groupSignal2">СИГНАЛ 02</label><output id="groupShare2">—</output></div><div class="group-entry"><input id="groupSignal2" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 2, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar2"></div></div></div>
+        <div class="group-signal" id="groupCard3"><div class="group-signal-top"><label for="groupSignal3">СИГНАЛ 03</label><output id="groupShare3">—</output></div><div class="group-entry"><input id="groupSignal3" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 3, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar3"></div></div></div>
+        <div class="group-signal" id="groupCard4"><div class="group-signal-top"><label for="groupSignal4">СИГНАЛ 04</label><output id="groupShare4">—</output></div><div class="group-entry"><input id="groupSignal4" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 4, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar4"></div></div></div>
+        <div class="group-signal" id="groupCard5"><div class="group-signal-top"><label for="groupSignal5">СИГНАЛ 05</label><output id="groupShare5">—</output></div><div class="group-entry"><input id="groupSignal5" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 5, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar5"></div></div></div>
+        <div class="group-signal" id="groupCard6"><div class="group-signal-top"><label for="groupSignal6">СИГНАЛ 06</label><output id="groupShare6">—</output></div><div class="group-entry"><input id="groupSignal6" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 6, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar6"></div></div></div>
+        <div class="group-signal" id="groupCard7"><div class="group-signal-top"><label for="groupSignal7">СИГНАЛ 07</label><output id="groupShare7">—</output></div><div class="group-entry"><input id="groupSignal7" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 7, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar7"></div></div></div>
+        <div class="group-signal" id="groupCard8"><div class="group-signal-top"><label for="groupSignal8">СИГНАЛ 08</label><output id="groupShare8">—</output></div><div class="group-entry"><input id="groupSignal8" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 8, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar8"></div></div></div>
+        <div class="group-signal" id="groupCard9"><div class="group-signal-top"><label for="groupSignal9">СИГНАЛ 09</label><output id="groupShare9">—</output></div><div class="group-entry"><input id="groupSignal9" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 9, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar9"></div></div></div>
+        <div class="group-signal" id="groupCard10"><div class="group-signal-top"><label for="groupSignal10">СИГНАЛ 10</label><output id="groupShare10">—</output></div><div class="group-entry"><input id="groupSignal10" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Сигнал 10, dBm"><span>dBm</span></div><div class="group-bar"><div class="group-bar-fill" id="groupBar10"></div></div></div>
+      </div>
+      <h3 class="group-subtitle">ДОПОЛНИТЕЛЬНАЯ МОЩНОСТЬ И ПОПРАВКИ</h3>
+      <div class="group-corrections">
+        <div class="group-correction"><label for="groupExtraDbm">ДОБАВИТЬ МОЩНОСТЬ · dBm</label><div class="group-entry"><input id="groupExtraDbm" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="—" aria-label="Дополнительная мощность в dBm"><span>dBm</span></div><small>Отдельный 11-й сигнал. Пустое поле = не учитывать.</small></div>
+        <div class="group-correction"><label for="groupAddDb">ДОБАВИТЬ УСИЛЕНИЕ · dB</label><div class="group-entry"><span class="plus">+</span><input id="groupAddDb" type="text" inputmode="decimal" spellcheck="false" value="00.00" aria-label="Добавить усиление в dB"><span>dB</span></div><small>Общая положительная поправка к сумме мощностей.</small></div>
+        <div class="group-correction"><label for="groupSubtractDb">ВЫЧЕСТЬ ЗАТУХАНИЕ · dB</label><div class="group-entry"><span class="minus">−</span><input id="groupSubtractDb" type="text" inputmode="decimal" spellcheck="false" value="00.00" aria-label="Вычесть затухание в dB"><span>dB</span></div><small>Общая отрицательная поправка к сумме мощностей.</small></div>
+      </div>
+      <div class="group-output" aria-live="polite">
+        <div><div class="group-result-label">ИТОГОВАЯ МОЩНОСТЬ ГРУППОВОГО СПЕКТРА</div><div class="group-final"><span id="groupFinalDbm">−∞</span><span class="group-final-unit">dBm</span></div><strong id="groupFinalW">0.00 W</strong></div>
+        <div class="group-summary">
+          <div class="group-summary-line"><span>Сумма до поправок</span><strong id="groupBasePower">0 W / −∞ dBm</strong></div>
+          <div class="group-summary-line"><span>Учтено сигналов</span><strong id="groupCount">0 / 11</strong></div>
+          <div class="group-summary-line"><span>Итоговая поправка</span><strong id="groupNetDb">+0.00 dB</strong></div>
+        </div>
+      </div>
+      <div class="group-footer"><span id="groupStatus" class="group-status" role="status">Введите хотя бы один уровень сигнала в dBm.</span><button class="group-reset" type="button" id="groupResetBtn">↺ СБРОСИТЬ ГРУППУ</button></div>
+    </div>
+  </section>
+
+  <section class="convert-section" id="quickConversions" aria-labelledby="converterHeading">
+    <div class="convert-head">
+      <div class="convert-title"><span class="convert-pill">RF CONVERTER</span><h2 id="converterHeading">БЫСТРЫЕ КОНВЕРТАЦИИ · В ОБЕ СТОРОНЫ</h2></div>
+      <span class="convert-sub">Независимые инструменты · исходные измерения не изменяются</span>
+    </div>
+    <div class="convert-body">
+      <p class="convert-intro">Введите значение <strong>в любое поле</strong> — остальные величины пересчитаются автоматически. Для перевода мощности в напряжение используется действующее значение напряжения <strong>Vrms</strong> на согласованной активной нагрузке.</p>
+      <div class="impedance-switch"><span>СОПРОТИВЛЕНИЕ НАГРУЗКИ</span><div class="unit-toggle" role="group" aria-label="Сопротивление для пересчёта мощности и напряжения"><button type="button" id="convZ50" class="active" aria-pressed="true">50 Ω</button><button type="button" id="convZ75" aria-pressed="false">75 Ω</button></div><span class="impedance-caption">dBm и dBW не зависят от сопротивления; dBµV, dBmV и Vrms зависят.</span></div>
+      <div class="conversion-grid">
+        <div class="convert-field"><label for="convW">МОЩНОСТЬ · W</label><div class="convert-entry"><input id="convW" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1.00"><span>W</span></div><small>Линейная мощность</small></div>
+        <div class="convert-field"><label for="convDbm">УРОВЕНЬ · dBm</label><div class="convert-entry"><input id="convDbm" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="30.00"><span>dBm</span></div><small>Относительно 1 mW</small></div>
+        <div class="convert-field"><label for="convDbw">УРОВЕНЬ · dBW</label><div class="convert-entry"><input id="convDbw" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="0.00"><span>dBW</span></div><small>Относительно 1 W</small></div>
+        <div class="convert-field"><label for="convDbuV">НАПРЯЖЕНИЕ · dBµV</label><div class="convert-entry"><input id="convDbuV" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"><span>dBµV</span></div><small>Относительно 1 µV RMS</small></div>
+        <div class="convert-field"><label for="convDbmV">НАПРЯЖЕНИЕ · dBmV</label><div class="convert-entry"><input id="convDbmV" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"><span>dBmV</span></div><small>Относительно 1 mV RMS</small></div>
+        <div class="convert-field"><label for="convVrms">НАПРЯЖЕНИЕ · Vrms</label><div class="convert-entry"><input id="convVrms" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"><span>V RMS</span></div><small>V<sub>RMS</sub> = √(P · Z)</small></div>
+      </div>
+      <div id="convStatus" class="convert-status" role="status">Готово · любой параметр доступен для редактирования.</div>
+      <div class="rf-extra-grid">
+        <section class="rf-tool" aria-labelledby="eirpHeading">
+          <div class="rf-tool-head"><h3 id="eirpHeading">EIRP · ЭИИМ</h3><span>Эквивалентная изотропно излучаемая мощность</span></div>
+          <div class="rf-tool-body">
+            <p class="rf-tool-tip">Введите мощность передатчика в W или dBm, усиление антенны в dBi и суммарные потери тракта в dB. Используется <strong>проводимая мощность на входе тракта</strong>; Mismatch Loss отдельно здесь не включён.</p>
+            <div class="rf-input-grid">
+              <div class="rf-input"><label for="eirpW">МОЩНОСТЬ ПЕРЕДАТЧИКА</label><div class="convert-entry"><input id="eirpW" type="text" inputmode="decimal" value="1.00" spellcheck="false"><span>W</span></div></div>
+              <div class="rf-input"><label for="eirpDbm">МОЩНОСТЬ ПЕРЕДАТЧИКА</label><div class="convert-entry"><input id="eirpDbm" type="text" inputmode="decimal" value="30.00" spellcheck="false"><span>dBm</span></div></div>
+              <div class="rf-input"><label for="eirpGain">УСИЛЕНИЕ АНТЕННЫ</label><div class="convert-entry"><input id="eirpGain" type="text" inputmode="decimal" value="0.00" spellcheck="false"><span>dBi</span></div></div>
+              <div class="rf-input"><label for="eirpLoss">ПОТЕРИ ТРАКТА</label><div class="convert-entry"><input id="eirpLoss" type="text" inputmode="decimal" value="0.00" spellcheck="false"><span>dB</span></div></div>
+            </div>
+            <div class="rf-result" aria-live="polite"><div class="rf-result-label">РАСЧЁТНАЯ EIRP</div><div class="rf-result-main" id="eirpOutDbm">30.00 dBm</div><div class="rf-result-secondary" id="eirpOutPower">1.00 W · 0.00 dBW</div></div>
+            <div class="rf-tool-status" id="eirpStatus" role="status">EIRP (dBm) = PTx (dBm) + G (dBi) − L (dB).</div>
+          </div>
+        </section>
+        <section class="rf-tool" aria-labelledby="ratioHeading">
+          <div class="rf-tool-head"><h3 id="ratioHeading">RF POWER RATIO CONVERSION</h3><span>Отношение двух RF-мощностей</span></div>
+          <div class="rf-tool-body">
+            <p class="rf-tool-tip">Укажите опорную мощность <strong>P₁</strong> и сравниваемую <strong>P₂</strong> в W или dBm. Можно вводить непосредственно отношение в dB или кратность ×: тогда пересчитается P₂.</p>
+            <div class="rf-input-grid">
+              <div class="rf-input"><label for="ratioP1W">ОПОРНАЯ · P₁</label><div class="convert-entry"><input id="ratioP1W" type="text" inputmode="decimal" value="1.00" spellcheck="false"><span>W</span></div></div>
+              <div class="rf-input"><label for="ratioP1Dbm">ОПОРНАЯ · P₁</label><div class="convert-entry"><input id="ratioP1Dbm" type="text" inputmode="decimal" value="30.00" spellcheck="false"><span>dBm</span></div></div>
+              <div class="rf-input"><label for="ratioP2W">СРАВНИВАЕМАЯ · P₂</label><div class="convert-entry"><input id="ratioP2W" type="text" inputmode="decimal" value="0.10" spellcheck="false"><span>W</span></div></div>
+              <div class="rf-input"><label for="ratioP2Dbm">СРАВНИВАЕМАЯ · P₂</label><div class="convert-entry"><input id="ratioP2Dbm" type="text" inputmode="decimal" value="20.00" spellcheck="false"><span>dBm</span></div></div>
+              <div class="rf-input"><label for="ratioDb">ОТНОШЕНИЕ · P₂/P₁</label><div class="convert-entry"><input id="ratioDb" type="text" inputmode="decimal" value="-10.00" spellcheck="false"><span>dB</span></div></div>
+              <div class="rf-input"><label for="ratioX">КРАТНОСТЬ · P₂/P₁</label><div class="convert-entry"><input id="ratioX" type="text" inputmode="decimal" value="0.1000" spellcheck="false"><span>×</span></div></div>
+            </div>
+            <div class="rf-result" aria-live="polite"><div class="rf-result-label">ОТНОШЕНИЕ УРОВНЕЙ</div><div class="ratio-inline"><div class="rf-result-main" id="ratioOutDb">−10.00 dB</div><div class="rf-result-secondary" id="ratioOutX">0.1000 ×</div></div><div class="ratio-facts" id="ratioOutPct">P₂ = 10.00% от P₁ · на 90.00% меньше</div></div>
+            <div class="rf-tool-status" id="ratioStatus" role="status">ΔP (dB) = 10 log₁₀(P₂/P₁) = P₂(dBm) − P₁(dBm).</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+  </div><!-- /pagePower -->
+  <section id="pageModcod" class="mod-area" role="tabpanel" aria-labelledby="navModcod" hidden>
+    <div class="mod-head">
+      <div><div class="mod-eyebrow">FREQUENCY & MOD COD · SATELLITE DIGITAL LINK</div><h2>Калькулятор модуляции и битрейта</h2><p>Расчёт полезной скорости BBFRAME и номинальной спектральной полосы для DVB-S, DVB-S2 и DVB-S2X. Учитываются допустимые MODCOD, тип FECFRAME, BCH/LDPC, 80-битный BBHEADER, 90-символьный PLHEADER и пилотные символы.</p></div>
+      <div class="mod-version">DVB · ETSI MODCOD TABLES</div>
+    </div>
+    <section class="mod-section" aria-labelledby="modSettingsTitle">
+      <div class="mod-section-head"><div class="mod-section-title"><span class="mod-pill">MOD / COD</span><h3 id="modSettingsTitle">ПАРАМЕТРЫ МОДУЛЯЦИИ И НЕСУЩЕЙ</h3></div><small>Выбор только поддерживаемых сочетаний</small></div>
+      <div class="mod-body">
+        <div class="mod-inputs">
+          <div class="mod-field"><label for="modStandard">СТАНДАРТ DVB</label><select id="modStandard"><option value="S">DVB-S</option><option value="S2" selected>DVB-S2</option><option value="S2X">DVB-S2X</option></select><small>Структура кадра и доступные MODCOD</small></div>
+          <div class="mod-field"><label for="modFrame">FECFRAME</label><select id="modFrame"><option value="N">Normal · 64 800 bits</option><option value="S">Short · 16 200 bits</option></select><small id="modFrameNote">Normal / Short (DVB-S2/S2X)</small></div>
+          <div class="mod-field"><label for="modConst">МОДУЛЯЦИЯ</label><select id="modConst"></select><small id="modConstNote">QPSK … 256APSK, по стандарту</small></div>
+          <div class="mod-field"><label for="modFec">FEC / CODE RATE</label><select id="modFec"></select><small id="modFecNote">Только разрешённые комбинации</small></div>
+          <div class="mod-field"><label for="modPilots">PILOTS · PLFRAME</label><label class="pilot-switch"><input type="checkbox" id="modPilots" checked role="switch"><span class="pilot-track" aria-hidden="true"></span><span class="pilot-word" id="modPilotsWord">ON</span></label><small id="modPilotsHint">+36 символов после каждых 16 SLOT, кроме последнего</small></div>
+          <div class="mod-field"><label for="modRoll">ROLL-OFF · α</label><select id="modRoll"></select><small>Для расчёта ширины спектра</small></div>
+          <div class="mod-field"><label for="modSymbol">SYMBOL RATE · Rs</label><div class="mod-row-input"><input id="modSymbol" type="text" inputmode="decimal" value="27.500" spellcheck="false"><span class="u">MBd</span></div><small>Миллионов символов в секунду</small></div>
+          <div class="mod-field"><label for="modCenter">ЦЕНТРАЛЬНАЯ ЧАСТОТА · Fc</label><div class="mod-row-input"><input id="modCenter" type="text" inputmode="decimal" value="11700.000" spellcheck="false"><span class="u">MHz</span></div><small>Для определения границ спектра</small></div>
+          <div class="mod-field"><label for="modGuard">ЗАЩИТНЫЙ ИНТЕРВАЛ · СУММАРНО</label><div class="mod-row-input"><input id="modGuard" type="text" inputmode="decimal" value="0.000" spellcheck="false"><span class="u">MHz</span></div><small>Не влияет на полезный битрейт</small></div>
+        </div>
+        <div id="modInputStatus" class="mod-inline-hint" role="status"><strong>Готово.</strong> DVB-S2 · QPSK 3/4 · Normal · Pilots ON.</div>
+        <div class="mod-controls-row"><button type="button" id="modReset" class="mod-reset">↺ СБРОСИТЬ ПАРАМЕТРЫ</button></div>
+      </div>
+    </section>
+    <section class="mod-section" aria-labelledby="modResultsTitle">
+      <div class="mod-section-head"><div class="mod-section-title"><span class="mod-pill">RESULTS</span><h3 id="modResultsTitle">РАСЧЁТНЫЙ БИТРЕЙТ И ПОЛОСА</h3></div><small>Мгновенный пересчёт при изменении параметров</small></div>
+      <div class="mod-body">
+        <div class="mod-results" aria-live="polite">
+          <div class="mod-result-card"><div class="mod-result-kicker">ПОЛЕЗНЫЙ BITRATE · BB PAYLOAD</div><div class="mod-value" id="modRate">— <span>Mbit/s</span></div><p>BBFRAME data field без BBHEADER, BCH/LDPC, PLHEADER и пилотов; до протокольных расходов TS/GSE/IP.</p></div>
+          <div class="mod-result-card bw"><div class="mod-result-kicker">NOMINAL OCCUPIED BANDWIDTH</div><div class="mod-value" id="modBandwidth">— <span>MHz</span></div><p>Расчётная полоса Nyquist/RRC: Symbol Rate × (1 + Roll-Off), не измеренный OBW 99% и не маска передатчика.</p></div>
+        </div>
+        <div class="mod-metrics">
+          <div class="mod-metric"><span>ПОЛЕЗНЫЕ БИТЫ / СИМВОЛ</span><strong id="modEff">—</strong></div>
+          <div class="mod-metric"><span>КОДИРОВАНИЕ FEC · BCH</span><strong id="modK">—</strong></div>
+          <div class="mod-metric"><span>ДЛИНА PLFRAME / PILOTS</span><strong id="modSymbols">—</strong></div>
+          <div class="mod-metric"><span>СПЕКТРАЛЬНАЯ ЭФФЕКТИВНОСТЬ</span><strong id="modSe">—</strong></div>
+          <div class="mod-metric"><span>ГРАНИЦЫ СПЕКТРА</span><strong id="modEdges">—</strong></div>
+          <div class="mod-metric"><span>ПОЛОСА С GUARD INTERVAL</span><strong id="modWithGuard">—</strong></div>
+          <div class="mod-metric"><span>BBFRAME DATA FIELD</span><strong id="modBbBits">—</strong></div>
+          <div class="mod-metric"><span>PLHEADER / PILOTS</span><strong id="modOverhead">—</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mod-section" aria-label="Радиочастотный спектр и анализатор">
+      <div class="mod-section-head"><div class="mod-section-title"><span class="mod-pill">RF SPECTRUM</span><h3>ИНТЕРАКТИВНЫЙ СПЕКТР · PEAK / NOISE MARKERS</h3></div><small>Имитация спектроанализатора · AWGN / RRC</small></div>
+      <div class="rf16-panel">
+        <div class="rf16-controls">
+          <div class="rf16-control"><label for="rf16Margin">ЗАПАС ОТНОСИТЕЛЬНО МИНИМУ · ΔEs/N₀</label><div class="rf16-flex"><input type="range" id="rf16Margin" min="-10" max="20" step="0.01" value="3.00" aria-label="Запас Es/N0 относительно минимального уровня"><input id="rf16MarginText" type="text" inputmode="decimal" value="+3.00" aria-label="Введите запас в dB"><span class="rf16-unit">dB</span></div><small>−10.00…+20.00 dB. Значение 0.00 соответствует расчётному порогу выбранного MODCOD.</small></div>
+          <div class="rf16-control"><label for="rf16Carrier">CARRIER POWER · МОЩНОСТЬ НЕСУЩЕЙ</label><div class="rf16-flex"><input id="rf16Carrier" type="text" inputmode="decimal" value="-42.00"><span class="rf16-unit">dBm</span></div><small>Абсолютный уровень трассы, не меняет C/N₀ и отношение C/N.</small></div>
+          <div class="rf16-control"><label for="rf16Rbw">RBW · ПОЛОСА РАЗРЕШЕНИЯ</label><div class="rf16-flex"><input id="rf16Rbw" type="text" inputmode="decimal" value="100.00"><span class="rf16-unit">kHz</span></div><small>Изменяет уровень dBm/RBW и шумовой маркер, не меняя C/N₀.</small></div>
+          <div class="rf16-control rf17-span-control"><label for="rf17Span">SPAN · ШИРИНА ОБЗОРА</label><div class="rf16-flex"><input id="rf17Span" type="text" inputmode="decimal" value="60.00" aria-label="SPAN в мегагерцах"><span class="rf16-unit">MHz</span></div><div class="rf17-span-buttons" role="group" aria-label="Масштаб спектра"><button type="button" id="rf17SpanIn" title="Приблизить: уменьшить SPAN вдвое">− SPAN</button><button type="button" id="rf17SpanOut" title="Отдалить: увеличить SPAN вдвое">+ SPAN</button><button type="button" id="rf17SpanAuto" title="Автоматически показать весь сигнал">AUTO</button></div><small>FC всегда в центре · START = FC − SPAN/2 · STOP = FC + SPAN/2.</small></div>
+        </div>
+        <div class="rf17-view-strip" aria-live="polite"><div><small>START</small><strong id="rf17Start">—</strong></div><div><small>FC · CENTER</small><strong id="rf17Center">—</strong></div><div><small>STOP</small><strong id="rf17Stop">—</strong></div><div><small>SPAN</small><strong id="rf17SpanLabel">—</strong></div></div>
+        <div class="rf16-spec-box"><div class="mod-spec-scroll rf18-spectrum-scroll" id="rf18SpectrumScroller" aria-label="Прокручиваемый RF спектр: проведите пальцем влево или вправо"><svg id="modSpectrum" viewBox="0 0 1100 492" role="img" aria-label="Моделируемый RF спектр с маркерами M1 peak и M2 noise; касание или щелчок меняет положение M2">
+          <rect x="0" y="0" width="1100" height="492" rx="10" fill="#081421"/><g id="modSpecGrid"></g><path id="modSpecFill" fill="#2a8fc3" opacity=".13"></path><path id="modSpecCurve" fill="none" stroke="#89dcff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path><g id="modSpecMarks"></g>
+        </svg></div></div>
+        <div class="rf18-pan-panel" aria-label="Горизонтальная прокрутка спектра">
+          <div class="rf18-pan-head"><strong>↔ ПАНОРАМА СПЕКТРА · HORIZONTAL SCROLL</strong><span>Свайп по графику / перемещение ползунка</span></div>
+          <div class="rf18-pan-layout">
+            <button type="button" id="rf18PanLeft" aria-label="Переместить обзор влево" title="Переместить обзор к START">◀</button>
+            <input id="rf18Pan" type="range" min="0" max="1000" value="500" step="1" aria-label="Сдвиг видимой области от START до STOP" aria-valuetext="Центр FC">
+            <button type="button" id="rf18PanRight" aria-label="Переместить обзор вправо" title="Переместить обзор к STOP">▶</button>
+            <button type="button" class="rf18-pan-center" id="rf18PanCenter">⊕ CENTER FC</button>
+          </div>
+          <div class="rf18-pan-caption"><span>◂ START</span><span>FC · CENTER</span><span>STOP ▸</span></div>
+          <div id="rf18PanReadout" class="rf18-pan-readout" aria-live="off">Видимый диапазон: —</div>
+        </div>
+        <div class="rf16-markers" aria-live="polite">
+          <div class="rf16-marker"><i></i><div><small>M1 · PEAK (dBm/RBW)</small><b id="rf16Peak">—</b></div></div>
+          <div class="rf16-marker noise"><i></i><div><small>M2 · NOISE (dBm/RBW)</small><b id="rf16Noise">—</b></div></div>
+          <div class="rf16-marker delta"><i></i><div><small>Δ M1 − M2 (dB)</small><b id="rf16Delta">—</b></div></div>
+        </div>
+        <div class="rf16-minibar"><div id="rf16SpecStatus" class="rf16-status" role="status">Ожидание расчёта.</div><button type="button" id="rf16AutoNoise">M2 · AUTO NOISE</button></div>
+        <div class="mod-spectrum-note">FC остаётся центром полного SPAN; для небольших экранов показана только часть спектра — перемещайте её пальцем или нижним ползунком, кнопка CENTER FC возвращает к несущей. SPAN изменяет частотный масштаб изображения. При изменении SPAN автоматически пересчитываются START/STOP и показания шумового маркера. M1 — максимальный отсчёт модельного спектра, M2 — измерение трассы в выбранной точке (щелчок по графику). Δ зависит от RBW и положения M2: <strong>это не то же самое, что CNR, MER или Es/N₀</strong>. Сгенерированная трасса — демонстрационная модель, а не данные реального анализатора.</div>
+      </div>
+    </section>
+    <section class="mod-section" aria-labelledby="rf16QualityTitle">
+      <div class="mod-section-head"><div class="mod-section-title"><span class="mod-pill">LINK QUALITY</span><h3 id="rf16QualityTitle">МИНИМАЛЬНЫЕ И РАСЧЁТНЫЕ ПАРАМЕТРЫ СИГНАЛА</h3></div><small>AWGN · порог MODCOD · динамический запас</small></div>
+      <div class="mod-body"><div class="rf16-table-scroll"><table class="rf16-quality" aria-label="Параметры качества радиосигнала"><thead><tr><th scope="col">ПАРАМЕТР</th><th scope="col">МИНИМУМ</th><th scope="col">МОДЕЛЬ</th><th scope="col">ЗАПАС / ИЗМЕНЕНИЕ</th></tr></thead><tbody>
+        <tr><td>Es/N₀ · dB</td><td id="rf16EsMin">—</td><td id="rf16EsNow">—</td><td id="rf16EsDiff">—</td></tr>
+        <tr><td>C/N₀ · dBHz</td><td id="rf16Cn0Min">—</td><td id="rf16Cn0Now">—</td><td id="rf16Cn0Diff">—</td></tr>
+        <tr><td>CNR · dB (B = Rs × [1 + α])</td><td id="rf16CnrMin">—</td><td id="rf16CnrNow">—</td><td id="rf16CnrDiff">—</td></tr>
+        <tr><td>Eb/N₀ · dB (полезный бит)</td><td id="rf16EbMin">—</td><td id="rf16EbNow">—</td><td id="rf16EbDiff">—</td></tr>
+        <tr><td>MER · dB <span title="Только AWGN, идеальная синхронизация">ⓘ</span></td><td id="rf16MerMin">—</td><td id="rf16MerNow">—</td><td id="rf16MerDiff">—</td></tr>
+        <tr><td>EVM RMS · % (нормировано к √Es)</td><td id="rf16EvmMin">—</td><td id="rf16EvmNow">—</td><td id="rf16EvmDiff">—</td></tr>
+        <tr><td>BER до FEC · модель AWGN</td><td id="rf16BerMin">—</td><td id="rf16BerNow">—</td><td id="rf16BerDiff">—</td></tr>
+        </tbody></table></div>
+        <div class="rf16-minibar"><div class="rf16-status" id="rf16QualityStatus" role="status">Таблица обновляется при выборе MODCOD.</div></div>
+        <p class="rf16-table-info" id="rf16QualityNote">Минимальные Es/N₀ — нормативные идеальные пороги для DVB-S2 / S2X (AWGN, QEF) и исходные требования DVB-S, без реальных запасов оборудования. В коротких кадрах DVB-S2 учитывается ориентировочная прибавка 0.25 dB. MER≈Es/N₀ только при чистом AWGN; EVM нормирован к средней энергии символа. BER оценивается до FEC для условного созвездия, после FEC без модели демодулятора/декодера не рассчитывается.</p>
+        <p class="mod-source">Нормативные основания порогов: <a href="https://www.etsi.org/deliver/etsi_en/300400_300499/300421/01.01.02_60/en_300421v010102p.pdf" target="_blank" rel="noopener noreferrer">ETSI EN 300 421 · DVB-S</a> · <a href="https://www.etsi.org/deliver/etsi_en/302300_302399/30230701/01.04.01_60/en_30230701v010401p.pdf" target="_blank" rel="noopener noreferrer">ETSI EN 302 307-1 · DVB-S2</a> · <a href="https://meganorm.ru/mega_doc/norm/gost-r_gosudarstvennyj-standart/9/gost_r_59807-2021_natsionalnyy_standart_rossiyskoy.html" target="_blank" rel="noopener noreferrer">ГОСТ Р 59807-2021 · DVB-S2X, приложение А</a> · <a href="https://www.etsi.org/deliver/etsi_TR/101200_101299/101290/01.02.01_60/tr_101290v010201p.pdf" target="_blank" rel="noopener noreferrer">ETSI TR 101 290 · MER/EVM</a>. Реализация не является аттестованным измерительным прибором.</p>
+      </div>
+    </section>
+    <section class="mod-section" aria-labelledby="rf16ConstTitle">
+      <div class="mod-section-head"><div class="mod-section-title"><span class="mod-pill">CONSTELLATION</span><h3 id="rf16ConstTitle">IQ CONSTELLATION DIAGRAM</h3></div><small>Имитация принятого созвездия · AWGN</small></div>
+      <div class="mod-body"><div class="rf16-const-layout"><div class="rf16-iq-shell"><svg id="rf16Constellation" viewBox="0 0 520 520" role="img" aria-label="IQ-созвездие выбранной модуляции: идеальные точки и облака с шумом"></svg></div><div class="rf16-iq-detail"><h4>РАСЧЁТНОЕ СОСТОЯНИЕ IQ</h4>
+        <div class="rf16-iq-row"><small>МОДУЛЯЦИЯ</small><strong id="rf16IqMod">—</strong></div>
+        <div class="rf16-iq-row"><small>IDEAL POINTS</small><strong id="rf16IqPts">—</strong></div>
+        <div class="rf16-iq-row"><small>Es/N₀ · ТЕКУЩИЙ</small><strong id="rf16IqEs">—</strong></div>
+        <div class="rf16-iq-row"><small>ОЦЕНКА EVM RMS</small><strong id="rf16IqEvm">—</strong></div>
+        <div class="rf16-iq-note"><span style="color:#81d4ff">●</span> идеальные IQ-точки · <span style="color:#b1f0da">●</span> модельные отсчёты с AWGN. Точки изменяются при сдвиге Es/N₀. Геометрия APSK — иллюстративная кольцевая аппроксимация, <strong>не точная ETSI-карта точек или фактически измеренные IQ-данные</strong>.</div>
+      </div></div></div>
+    </section>
+    <section class="mod-section" aria-label="Формулы расчёта и стандарты">
+      <div class="mod-section-head"><div class="mod-section-title"><span class="mod-pill">METHOD</span><h3>МЕТОДИКА И ГРАНИЦЫ ПРИМЕНИМОСТИ</h3></div></div>
+      <div class="mod-body"><div class="mod-equations">
+        <div class="mod-equation"><strong>DVB-S2 / S2X · USER BITRATE</strong><p>R<sub>useful</sub> = R<sub>s</sub> × (K<sub>BCH</sub> − 80) / [90 × (S + 1) + 36 × ⌊(S − 1)/16⌋] при Pilots ON. При OFF пилотное слагаемое равно нулю. S — число 90-символьных слотов информационного XFECFRAME.</p></div>
+        <div class="mod-equation"><strong>DVB-S · USER BITRATE</strong><p>R<sub>TS</sub> = R<sub>s</sub> × 2 × FEC × 188/204. QPSK, свёрточный код, внешний RS(204,188); режимы FECFRAME и Pilots для DVB-S не применяются.</p></div>
+        <div class="mod-equation"><strong>НОМИНАЛЬНАЯ ПОЛОСА</strong><p>B<sub>nom</sub> = R<sub>s</sub> × (1 + α). Частотные границы: F<sub>c</sub> ± B<sub>nom</sub>/2. Планируемая полоса с защитным интервалом: B<sub>plan</sub> = B<sub>nom</sub> + B<sub>guard</sub>.</p></div>
+        <div class="mod-equation"><strong>ВАЖНЫЕ ОГРАНИЧЕНИЯ</strong><p>Здесь моделируются одиночная непрерывная несущая, полностью заполненные BBFRAME и обычное PL-фреймирование. Dummy frames, специальные VL-SNR/shortening/puncturing режимы, superframes, ACM с переменными MODCOD, TS/GSE/IP-накладные расходы и разрывы трафика отдельно не учитываются.</p></div>
+      </div><p class="mod-source">Нормативные источники: <a href="https://www.etsi.org/deliver/etsi_en/300400_300499/300421/01.01.02_60/en_300421v010102p.pdf" target="_blank" rel="noopener noreferrer">ETSI EN 300 421 (DVB-S)</a> · <a href="https://www.etsi.org/deliver/etsi_en/302300_302399/30230701/01.04.01_60/en_30230701v010401p.pdf" target="_blank" rel="noopener noreferrer">ETSI EN 302 307-1 (DVB-S2)</a> · <a href="https://www.etsi.org/deliver/etsi_en/302300_302399/30230702/01.03.01_20/en_30230702v010301a.pdf" target="_blank" rel="noopener noreferrer">ETSI EN 302 307-2 (DVB-S2X)</a>. Таблицы K<sub>BCH</sub> и MODCOD рассчитаны для стандартных режимов.</p></div>
+    </section>
+  </section>
+
+</div>
+<script>
+'use strict';
+(function(){
+  const $ = id=>document.getElementById(id);
+  const EL={w:$('wattsInput'),d:$('dbmInput'),a:$('attenuationInput'),uw:$('unitW'),um:$('unitMw'),suffix:$('wattsSuffix'),readW:$('correctedPower'),readD:$('correctedDbm'),status:$('rangeState'),pointer:$('pointer'),hitbox:$('hitbox'),scroll:$('rulerScroll'),rw:$('reflectedWatts'),rd:$('reflectedDbm'),ruw:$('refUnitW'),rum:$('refUnitMw'),rsuffix:$('reflectedSuffix'),incident:$('incidentReadout'),vswr:$('vswrValue'),vswrStatus:$('vswrState'),returnLoss:$('returnLoss'),mismatch:$('mismatchLoss'),load:$('loadReadout'),gamma:$('gammaValue'),refPct:$('reflectedPercent'),ratioFill:$('ratioFill'),ratioTrack:$('ratioTrack'),vswrHelp:$('vswrHelp'),vswrDanger:$('vswrDanger')};
+  const X0=65,WIDTH=1110,MAX_W=1000;
+  let rawW=0,attDb=0,unit='W',reflectedW=0,reflectedUnit='W',updatingPointer=false;
+  const svgNS='http://www.w3.org/2000/svg';
+  function svgEl(tag,attr,text){const e=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attr||{}))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;return e;}
+  const pos=w=>X0+WIDTH*Math.min(1,Math.max(0,w/MAX_W));
+  const dbmFromW=w=>w>0?10*Math.log10(w)+30:-Infinity;
+  function wattFromDbm(dbm){if(dbm===-Infinity)return 0;return Math.pow(10,(dbm-30)/10);}
+  function validNonnegative(n){return Number.isFinite(n)&&n>=0;}
+  function decimal(s){const t=s.trim().replace(/\s/g,'').replace(',', '.').replace(/−/g,'-');if(t==='')return NaN;return Number(t);}
+  function f2(n,min=2){if(!Number.isFinite(n))return n===-Infinity?'−∞':'∞';const t=Math.abs(n).toFixed(2).padStart(min+3,'0');return (n<0?'-':'')+t;}
+  function showNum(n,dec=2){if(n===Infinity)return '∞';if(n===-Infinity)return '−∞';if(Number.isNaN(n))return '—';if(n!==0&&(Math.abs(n)<0.005 || Math.abs(n)>=1e9))return n.toExponential(3);return n.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec,useGrouping:false});}
+  function fullPrecisionPower(w){if(w===0)return '0 W';if(!Number.isFinite(w))return '∞ W';if(w<1e-7||w>=1e9)return w.toExponential(4)+' W';if(w<1)return (w*1000).toLocaleString('en-US',{maximumFractionDigits:5})+' mW';return w.toLocaleString('en-US',{maximumFractionDigits:5})+' W';}
+  function setUnit(to){unit=to;EL.uw.classList.toggle('active',unit==='W');EL.um.classList.toggle('active',unit==='mW');EL.uw.setAttribute('aria-pressed',unit==='W'?'true':'false');EL.um.setAttribute('aria-pressed',unit==='mW'?'true':'false');EL.suffix.textContent=unit;syncInputs();}
+  function syncInputs(exclude){
+    if(exclude!=='watts' && document.activeElement!==EL.w)EL.w.value=f2(unit==='W'?rawW:rawW*1000,3);
+    if(exclude!=='dbm' && document.activeElement!==EL.d)EL.d.value=f2(dbmFromW(rawW),2);
+    if(exclude!=='att' && document.activeElement!==EL.a)EL.a.value=f2(attDb,2);
+  }
+  function drawTicks(){
+    const wG=$('wattTicks'),dG=$('dbmTicks');
+    for(let w=0;w<=1000;w+=10){
+      const x=pos(w),major=w%100===0,medium=w%50===0;
+      wG.appendChild(svgEl('line',{x1:x,x2:x,y1:major?46:medium?58:66,y2:84,stroke:major?'#a4b9c9':'#5d7488','stroke-width':major?1.6:1}));
+      if(major){wG.appendChild(svgEl('text',{x,y:32,'text-anchor':'middle','font-size':'15','font-weight':'750',fill:'#e1edf7'},String(w)));}
+    }
+    // All decibel tick positions are computed from the same linear-watt axis.
+    // Tiny powers necessarily cluster near x=0, so we hide overlapping graduations.
+    let previousX=-1e9;
+    for(let dbm=-20;dbm<=60;dbm++){
+      const x=pos(wattFromDbm(dbm));
+      if(x-previousX<6)continue;
+      const major=dbm%2===0;
+      dG.appendChild(svgEl('line',{x1:x,x2:x,y1:117,y2:major?146:136,stroke:major?'#a1bacb':'#5a7488','stroke-width':major?1.4:1}));
+      previousX=x;
+    }
+    dG.appendChild(svgEl('text',{x:X0,y:174,'text-anchor':'middle','font-size':'14',fill:'#dbe8f2','font-weight':'750'},'−∞'));
+    let prevLabel=X0;
+    const labelDbm=[50,52,54,56,58,60];
+    for(const dbm of labelDbm){const x=pos(wattFromDbm(dbm));if(x-prevLabel<59)continue;
+      dG.appendChild(svgEl('text',{x,y:174,'text-anchor':'middle','font-size':'14','font-weight':'750',fill:'#dbe8f2'},String(dbm)));
+      prevLabel=x;
+    }
+  }
+  function updateRuler(correctedW){
+    const x=pos(correctedW),p=EL.pointer;
+    p.setAttribute('transform',`translate(${x-X0} 0)`);
+    const state=Number.isFinite(correctedW) && correctedW<=MAX_W;
+    EL.status.textContent=state?'● В ДИАПАЗОНЕ':'▲ ВЫШЕ 1000 W';
+    EL.status.classList.toggle('out',!state);
+    // Bring the marker back into view when the SVG is horizontally scrollable.
+    if(EL.scroll.scrollWidth>EL.scroll.clientWidth && !updatingPointer){
+      const target=(x/1240)*$('ruler').getBoundingClientRect().width-EL.scroll.clientWidth/2;
+      EL.scroll.scrollLeft=Math.max(0,target);
+    }
+  }
+  function formatReflectedInput(val){
+    if(val===0)return '0.00';
+    if(!Number.isFinite(val))return '∞';
+    if(val<0.000001||val>=1e12)return val.toExponential(5);
+    if(val<0.01)return val.toPrecision(6).replace(/0+$/, '').replace(/\.$/, '');
+    return val.toFixed(2);
+  }
+  function syncReflected(exclude){
+    const value=reflectedUnit==='W'?reflectedW:reflectedW*1000;
+    if(exclude!=='watts' && document.activeElement!==EL.rw)EL.rw.value=formatReflectedInput(value);
+    if(exclude!=='dbm' && document.activeElement!==EL.rd)EL.rd.value=f2(dbmFromW(reflectedW),2);
+  }
+  function setReflectedUnit(to){
+    reflectedUnit=to;
+    EL.ruw.classList.toggle('active',to==='W');EL.rum.classList.toggle('active',to==='mW');
+    EL.ruw.setAttribute('aria-pressed',String(to==='W'));EL.rum.setAttribute('aria-pressed',String(to==='mW'));
+    EL.rsuffix.textContent=to;syncReflected();
+  }
+  function setVSWRStatus(label,isWarning,help){
+    EL.vswrStatus.textContent=label;EL.vswrStatus.classList.toggle('warn',isWarning);EL.vswrStatus.classList.remove('critical');
+    EL.vswrHelp.textContent=help;EL.vswrHelp.classList.toggle('warn',isWarning);
+  }
+  const MAX_REFLECT_PCT=10;
+  function setVSWRDanger(message){
+    EL.vswrDanger.hidden=!message;
+    EL.vswrDanger.textContent=message||'';
+  }
+  function setVSWRHighRefStatus(message,details){
+    setVSWRStatus('РАСЧЁТ НЕ В НОРМЕ',true,details||'Высокая доля отражения. Мощность, принятая нагрузкой, рассчитывается как P FWD − P REF; Return Loss не вычитается напрямую из уровня.');
+    EL.vswrStatus.classList.add('critical');
+    setVSWRDanger(message);
+  }
+  function updateVSWR(forwardW){
+    setVSWRDanger('');
+    EL.incident.textContent=fullPrecisionPower(forwardW)+' / '+showNum(dbmFromW(forwardW),2)+' dBm';
+    const possible=forwardW>0 && Number.isFinite(forwardW);
+    const valid=possible && reflectedW<=forwardW*(1+1e-12);
+    if(!valid){
+      EL.vswr.textContent='—';EL.returnLoss.textContent='— dB';EL.mismatch.textContent='— dB';EL.load.textContent=possible?'— W':'0 W';EL.gamma.textContent='—';EL.refPct.textContent='— %';
+      EL.ratioFill.style.width='0%';EL.ratioTrack.setAttribute('aria-valuenow','0');
+      if(!possible)setVSWRStatus('НЕТ ПАДАЮЩЕЙ МОЩНОСТИ',true,'Для расчёта задайте падающую мощность выше 0 W на главном измерителе.');
+      else setVSWRHighRefStatus('ОШИБКА: отражённая мощность превышает падающую (> 100%). Для пассивной нагрузки это некорректно: проверьте измерения и направленность ответвителя.','Расчёт VSWR и мощности нагрузки заблокирован до исправления значений.');
+      return;
+    }
+    // Treat powers equal within floating-point precision as total reflection.
+    const closeToEqual=Math.abs(forwardW-reflectedW)<=1e-12*Math.max(forwardW,reflectedW);
+    const ratio=closeToEqual?1:Math.min(1,reflectedW/forwardW);
+    const gamma=Math.sqrt(ratio),vswr=gamma>=1?Infinity:(1+gamma)/(1-gamma);
+    const rl=gamma===0?Infinity:-10*Math.log10(ratio),pct=ratio*100;
+    // Return Loss is not a loss of transmitted power. The actual loss of accepted power is Mismatch Loss.
+    const mismatchDb=ratio===1?Infinity:-10*Math.log10(1-ratio);
+    const acceptedW=closeToEqual?0:Math.max(0,forwardW-reflectedW);
+    EL.vswr.textContent=Number.isFinite(vswr)?vswr.toFixed(4):'∞';
+    EL.returnLoss.textContent=Number.isFinite(rl)?rl.toFixed(2)+' dB':'∞ dB';
+    EL.mismatch.textContent=Number.isFinite(mismatchDb)?mismatchDb.toFixed(4)+' dB':'∞ dB';
+    EL.load.textContent=fullPrecisionPower(acceptedW)+' / '+showNum(dbmFromW(acceptedW),2)+' dBm';
+    EL.gamma.textContent=gamma.toFixed(5);
+    EL.refPct.textContent=pct.toFixed(pct>0&&pct<0.01?4:2)+' %';
+    EL.ratioFill.style.width=pct+'%';EL.ratioTrack.setAttribute('aria-valuenow',pct.toFixed(6));
+    if(ratio>MAX_REFLECT_PCT/100+1e-12){
+      const pctText=pct.toFixed(2);
+      setVSWRHighRefStatus('ВНИМАНИЕ: отражённая мощность составляет '+pctText+'% от падающей и превышает допустимый в этом приборе порог 10.00%. Проверьте согласование нагрузки, кабель и измерительную схему.');
+    }else{
+      setVSWRStatus('РАСЧЁТ В НОРМЕ',false,'Отражённая мощность '+pct.toFixed(2)+'% ≤ 10.00%. Return Loss показывает отражение; в итоговой мощности учтены только реальные потери рассогласования (Mismatch Loss).');
+    }
+  }
+  function setReflectedWText(text){
+    const n=decimal(text);if(!validNonnegative(n))return false;
+    const candidate=reflectedUnit==='W'?n:n/1000;
+    if(!Number.isFinite(candidate)||candidate>1e27)return false;
+    reflectedW=candidate;syncReflected('watts');render();return true;
+  }
+  function setReflectedDbmText(text){
+    const t=text.trim().replace(/\s/g,'').toLowerCase();
+    if(t==='−∞'||t==='-∞'||t==='-inf'){reflectedW=0;syncReflected('dbm');render();return true;}
+    const n=decimal(text);if(!Number.isFinite(n)||n< -300||n>300)return false;
+    reflectedW=wattFromDbm(n);syncReflected('dbm');render();return true;
+  }
+  function reflectedHandler(input,apply,kind){
+    input.addEventListener('input',()=>{input.removeAttribute('aria-invalid');if(!apply(input.value))input.setAttribute('aria-invalid','true');});
+    input.addEventListener('blur',()=>{if(!apply(input.value))render();syncReflected();input.removeAttribute('aria-invalid');});
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();input.blur();}
+      if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+        e.preventDefault();const dir=e.key==='ArrowUp'?1:-1;
+        if(kind==='watts'){
+          const base=reflectedUnit==='W'?reflectedW:reflectedW*1000;
+          input.value=(Math.max(0,base+dir*.01)).toFixed(2);
+        }else{
+          const base=reflectedW>0?dbmFromW(reflectedW):0;
+          input.value=Math.max(-300,Math.min(300,base+dir*.01)).toFixed(2);
+        }
+        apply(input.value);
+      }
+    });
+  }
+  function incidentPower(){
+    return rawW*Math.pow(10,-attDb/10);
+  }
+  function render(exclude){
+    const forwardW=incidentPower();
+    const valid=Number.isFinite(forwardW) && forwardW>=0 && reflectedW<=forwardW*(1+1e-12);
+    // The watt scale shows accepted power, never P_forward or P_reflected.
+    // P_load = P_forward * (1-|Gamma|^2) = P_forward - P_reflected.
+    // At zero forward power and zero reflection the main scale still reads zero.
+    const equal=valid && Math.abs(forwardW-reflectedW)<=1e-12*Math.max(forwardW,reflectedW);
+    const loadW=valid?(equal?0:Math.max(0,forwardW-reflectedW)):NaN;
+    syncInputs(exclude);
+    EL.readW.textContent=Number.isNaN(loadW)?'—':showNum(loadW,2);
+    EL.readD.textContent=Number.isNaN(loadW)?'— dBm':showNum(dbmFromW(loadW),2)+' dBm';
+    if(valid){
+      EL.pointer.style.visibility='visible';
+      updateRuler(loadW);
+    }else{
+      EL.pointer.style.visibility='hidden';
+      EL.status.textContent='▲ ОШИБКА P REF > P FWD';
+      EL.status.classList.add('out');
+    }
+    updateVSWR(forwardW);
+  }
+  function setFromWText(text){const n=decimal(text);if(!validNonnegative(n))return false;const nw=unit==='W'?n:n/1000;if(!validNonnegative(nw))return false;rawW=nw;render('watts');return true;}
+  function setFromDbmText(text){const t=text.trim().replace(/\s/g,'').toLowerCase();if(t==='−∞'||t==='-∞'||t==='-inf'){rawW=0;render('dbm');return true;}const n=decimal(text);if(!Number.isFinite(n)||n< -300||n>300)return false;rawW=wattFromDbm(n);if(rawW<1&&unit==='W')setUnit('mW');else if(rawW>=1&&unit==='mW')setUnit('W');render('dbm');return true;}
+  function setAttentionText(text){const n=decimal(text);if(!Number.isFinite(n)||n< -120||n>120)return false;attDb=n;render('att');return true;}
+  function handler(inp,apply){
+    inp.addEventListener('input',()=>{inp.removeAttribute('aria-invalid');if(!apply(inp.value))inp.setAttribute('aria-invalid','true');});
+    inp.addEventListener('blur',()=>{if(!apply(inp.value))render();syncInputs();inp.removeAttribute('aria-invalid');});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();const direction=e.key==='ArrowUp'?1:-1;const v=decimal(inp.value);if(inp===EL.w){inp.value=f2(Math.max(0,(Number.isFinite(v)?v:0)+direction*.01),3);}else if(inp===EL.d){inp.value=f2(Math.max(-300,Math.min(300,(Number.isFinite(v)?v:0)+direction*.01)),2);}else{inp.value=f2(Math.max(-120,Math.min(120,(Number.isFinite(v)?v:0)+direction*.01)),2);}apply(inp.value);}});
+  }
+  handler(EL.w,setFromWText);handler(EL.d,setFromDbmText);handler(EL.a,setAttentionText);
+  reflectedHandler(EL.rw,setReflectedWText,'watts');reflectedHandler(EL.rd,setReflectedDbmText,'dbm');
+  EL.ruw.addEventListener('click',()=>setReflectedUnit('W'));
+  EL.rum.addEventListener('click',()=>setReflectedUnit('mW'));
+
+  EL.uw.addEventListener('click',()=>setUnit('W'));
+  EL.um.addEventListener('click',()=>setUnit('mW'));
+  document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{
+    const direction=Number(b.dataset.direction),name=b.dataset.step,inp=name==='watts'?EL.w:EL.d;
+    if(name==='watts'){const v=unit==='W'?rawW:rawW*1000;rawW=Math.max(0,v+direction*.01)/(unit==='W'?1:1000);render();}
+    else{let d=dbmFromW(rawW);if(!Number.isFinite(d))d=0;d=Math.max(-300,Math.min(300,d+direction*.01));rawW=wattFromDbm(d);if(rawW<1&&unit==='W')setUnit('mW');render();}
+    inp.focus();inp.select();
+  }));
+  $('resetBtn').addEventListener('click',()=>{rawW=0;attDb=0;reflectedW=0;document.activeElement.blur?.();setUnit('W');setReflectedUnit('W');syncReflected();render();});
+  function scrub(evt){
+    const bounds=$('ruler').getBoundingClientRect();
+    const x=(evt.clientX-bounds.left)*1240/bounds.width;
+    const correctedW=Math.min(MAX_W,Math.max(0,(x-X0)/WIDTH*MAX_W));
+    const candidate=(correctedW+reflectedW)/Math.pow(10,-attDb/10);
+    if(validNonnegative(candidate)){rawW=candidate;if(rawW>0&&rawW<1&&unit==='W')setUnit('mW');else if(rawW>=1&&unit==='mW')setUnit('W');updatingPointer=true;render();updatingPointer=false;}
+  }
+  let dragging=false;
+  EL.hitbox.addEventListener('pointerdown',e=>{dragging=true;EL.hitbox.setPointerCapture(e.pointerId);scrub(e);});
+  EL.hitbox.addEventListener('pointermove',e=>{if(dragging)scrub(e);});
+  EL.hitbox.addEventListener('pointerup',()=>{dragging=false;});
+  EL.hitbox.addEventListener('pointercancel',()=>{dragging=false;});
+  drawTicks();syncReflected();render();
+
+  // Isolated group spectrum calculation: intentionally does not read or write rawW, attDb or reflectedW.
+  const GROUP_INPUTS=Array.from({length:10},(_,i)=>$('groupSignal'+(i+1)));
+  const groupExtra=$('groupExtraDbm'),groupAdd=$('groupAddDb'),groupSub=$('groupSubtractDb');
+  function optionalDbm(str){
+    const t=str.trim().replace(/\s/g,'').toLowerCase();
+    if(!t)return {active:false,watts:0};
+    if(t==='−∞'||t==='-∞'||t==='-inf')return {active:true,watts:0};
+    const n=decimal(str);
+    return Number.isFinite(n)&&n>=-300&&n<=300 ? {active:true,watts:wattFromDbm(n)} : null;
+  }
+  function requiredDb(str){
+    const n=decimal(str);
+    return Number.isFinite(n)&&n>=-120&&n<=120?n:null;
+  }
+  function setGroupValue(id,value){$(id).textContent=value;}
+  function renderGroup(){
+    let invalid=false,count=0,sum=0;
+    const parts=[];
+    GROUP_INPUTS.forEach((input,i)=>{
+      const parsed=optionalDbm(input.value);
+      input.setAttribute('aria-invalid',String(!parsed));
+      const active=Boolean(parsed&&parsed.active);
+      $('groupCard'+(i+1)).classList.toggle('filled',active);
+      if(!parsed)invalid=true;
+      else if(active){count++;sum+=parsed.watts;}
+      parts.push(parsed&&active?parsed.watts:null);
+    });
+    const ext=optionalDbm(groupExtra.value),add=requiredDb(groupAdd.value),sub=requiredDb(groupSub.value);
+    groupExtra.setAttribute('aria-invalid',String(!ext));
+    groupAdd.setAttribute('aria-invalid',String(add===null));
+    groupSub.setAttribute('aria-invalid',String(sub===null));
+    if(!ext||add===null||sub===null)invalid=true;
+    if(ext&&ext.active){sum+=ext.watts;count++;}
+    const net=add!==null&&sub!==null?add-sub:null;
+    GROUP_INPUTS.forEach((input,i)=>{
+      const power=parts[i],share=power===null?'—':sum>0?(100*power/sum).toFixed(1)+'%':'0.0%';
+      $('groupShare'+(i+1)).textContent=share;
+      $('groupBar'+(i+1)).style.width=power===null||sum<=0?'0%':Math.max(0,Math.min(100,power/sum*100))+'%';
+    });
+    $('groupCount').textContent=count+' / 11';
+    $('groupBasePower').textContent=invalid?'—':fullPrecisionPower(sum)+' / '+showNum(dbmFromW(sum),2)+' dBm';
+    $('groupNetDb').textContent=net===null?'—':(net>=0?'+':'')+net.toFixed(2)+' dB';
+    const status=$('groupStatus');status.classList.toggle('error',invalid);
+    if(invalid){setGroupValue('groupFinalW','—');setGroupValue('groupFinalDbm','—');status.textContent='Ошибка ввода: значения dBm должны быть от −300 до +300, поправки dB — от −120 до +120.';return;}
+    const final=sum*Math.pow(10,net/10);
+    setGroupValue('groupFinalW',fullPrecisionPower(final));
+    setGroupValue('groupFinalDbm',showNum(dbmFromW(final),2));
+    if(count===0)status.textContent='Введите хотя бы один уровень сигнала в dBm. Пустые поля не учитываются.';
+    else status.textContent='Готово: линейно суммировано '+count+' сигнал(ов), затем применена общая поправка '+(net>=0?'+':'')+net.toFixed(2)+' dB.';
+  }
+  [...GROUP_INPUTS,groupExtra,groupAdd,groupSub].forEach(inp=>{
+    inp.addEventListener('input',renderGroup);
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();inp.blur();}
+      if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+        e.preventDefault();const dir=e.key==='ArrowUp'?1:-1,v=decimal(inp.value);
+        const base=Number.isFinite(v)?v:0,lim=(inp===groupAdd||inp===groupSub)?120:300;
+        inp.value=Math.max(-lim,Math.min(lim,Math.round((base+dir*.01)*100)/100)).toFixed(2);
+        renderGroup();
+      }
+    });
+  });
+  $('groupResetBtn').addEventListener('click',()=>{
+    GROUP_INPUTS.forEach(i=>i.value='');groupExtra.value='';groupAdd.value='00.00';groupSub.value='00.00';
+    document.activeElement.blur?.();renderGroup();
+  });
+  renderGroup();
+
+})();
+</script>
+
+<script>
+'use strict';
+/* Independent bidirectional v1.4 converter. All RF powers are stored in watts. */
+(function(){
+  const $=id=>document.getElementById(id);
+  function parse(s){const v=String(s).trim().replace(/\s/g,'').replace(/−/g,'-').replace(',','.');if(!v)return NaN;if(/^(-inf|-infinity|-∞)$/i.test(v))return -Infinity;return Number(v);}
+  const fmt=(n,dec=2)=>{
+    if(n===Infinity)return '∞';if(n===-Infinity)return '−∞';if(!Number.isFinite(n))return '—';
+    if(n!==0&&(Math.abs(n)<0.00001||Math.abs(n)>=1e12))return n.toExponential(5);
+    return n.toFixed(dec);
+  };
+  function fmtLinear(n){if(!Number.isFinite(n))return fmt(n);if(n===0)return '0.00';if(n<0.000001||n>=1e10)return n.toExponential(6);if(n<1)return Number(n.toPrecision(7)).toString();return n.toLocaleString('en-US',{useGrouping:false,maximumFractionDigits:6,minimumFractionDigits:2});}
+  const fromDbm=d=>d===-Infinity?0:Math.pow(10,(d-30)/10);
+  const toDbm=w=>w>0?10*Math.log10(w)+30:-Infinity;
+  const validW=w=>Number.isFinite(w)&&w>=0&&w<=1e30;
+  const validDbm=d=>d===-Infinity||(Number.isFinite(d)&&d>=-300&&d<=330);
+  function toPower(s,unit,z){
+    const n=parse(s);let w;
+    if(unit==='W')w=n;
+    else if(unit==='dBm'){if(!validDbm(n))return NaN;w=fromDbm(n);}
+    else if(unit==='dBW'){if(n===-Infinity)w=0;else if(Number.isFinite(n)&&n>=-330&&n<=300)w=Math.pow(10,n/10);else return NaN;}
+    else if(unit==='Vrms')w=n>=0?n*n/z:NaN;
+    else if(unit==='dBuV'||unit==='dBmV'){
+      if(n===-Infinity)return 0;
+      if(!Number.isFinite(n)||n<-300||n>400)return NaN;
+      const v=Math.pow(10,n/20)*(unit==='dBuV'?1e-6:1e-3);w=v*v/z;
+    }
+    return validW(w)?w:NaN;
+  }
+  function physical(w,z){
+    const v=Math.sqrt(w*z);
+    return {
+      W:fmtLinear(w), dBm:fmt(toDbm(w)), dBW:fmt(w>0?10*Math.log10(w):-Infinity),
+      Vrms:fmtLinear(v), dBuV:fmt(v>0?20*Math.log10(v)+120:-Infinity), dBmV:fmt(v>0?20*Math.log10(v)+60:-Infinity)
+    };
+  }
+  let z=50,converterW=1;
+  const cv={W:$('convW'),dBm:$('convDbm'),dBW:$('convDbw'),dBuV:$('convDbuV'),dBmV:$('convDbmV'),Vrms:$('convVrms')};
+  function syncCV(except){const numbers=physical(converterW,z);for(const [u,e] of Object.entries(cv))if(u!==except)e.value=numbers[u];}
+  function cvInput(unit){const e=cv[unit],w=toPower(e.value,unit,z);if(!validW(w)){
+    e.setAttribute('aria-invalid','true');$('convStatus').textContent='Некорректный уровень или слишком большое значение. Проверьте ввод.';$('convStatus').classList.add('error');return;
+  }
+  e.setAttribute('aria-invalid','false');converterW=w;syncCV(unit);$('convStatus').textContent='Пересчитано из '+unit+' · Z = '+z+' Ω. Значения относятся к одной согласованной активной нагрузке.';$('convStatus').classList.remove('error');}
+  for(const [unit,e] of Object.entries(cv)){
+    e.addEventListener('input',()=>cvInput(unit));
+    e.addEventListener('blur',()=>{if(e.getAttribute('aria-invalid')==='true'){e.removeAttribute('aria-invalid');syncCV();$('convStatus').classList.remove('error');$('convStatus').textContent='Показаны последние корректные данные.';}else{syncCV();}});
+    e.addEventListener('keydown',event=>{if(event.key==='Enter')e.blur();});
+  }
+  function setZ(value){z=value;for(const ohm of [50,75]){$('convZ'+ohm).classList.toggle('active',ohm===z);$('convZ'+ohm).setAttribute('aria-pressed',String(ohm===z));}syncCV();$('convStatus').textContent='Нагрузка '+z+' Ω: значения напряжения пересчитаны; мощность осталась прежней.';$('convStatus').classList.remove('error');}
+  $('convZ50').addEventListener('click',()=>setZ(50));$('convZ75').addEventListener('click',()=>setZ(75));
+  syncCV();
+
+  // EIRP: forward and inverse editing of transmitter W/dBm, both isolated from v1.3.
+  let txW=1;
+  const eirpW=$('eirpW'),eirpD=$('eirpDbm'),gain=$('eirpGain'),loss=$('eirpLoss');
+  function renderEirp(except){
+    if(except!=='W')eirpW.value=fmtLinear(txW);
+    if(except!=='dBm')eirpD.value=fmt(toDbm(txW));
+    const g=parse(gain.value),l=parse(loss.value);
+    const ok=Number.isFinite(g)&&g>=-100&&g<=120&&Number.isFinite(l)&&l>=0&&l<=200;
+    gain.setAttribute('aria-invalid',String(!(Number.isFinite(g)&&g>=-100&&g<=120)));
+    loss.setAttribute('aria-invalid',String(!(Number.isFinite(l)&&l>=0&&l<=200)));
+    if(!ok){$('eirpOutDbm').textContent='—';$('eirpOutPower').textContent='—';$('eirpStatus').textContent='Проверьте G (от −100 до +120 dBi) и потери (от 0 до 200 dB).';$('eirpStatus').classList.add('error');return;}
+    const net=g-l,eo=txW*Math.pow(10,net/10);
+    $('eirpOutDbm').textContent=fmt(toDbm(eo))+' dBm';
+    $('eirpOutPower').textContent=fmtLinear(eo)+' W · '+fmt(eo>0?10*Math.log10(eo):-Infinity)+' dBW';
+    $('eirpStatus').textContent='Усиление '+fmt(g)+' dBi − потери '+fmt(l)+' dB = '+(net>=0?'+':'')+fmt(net)+' dB к мощности передатчика.';
+    $('eirpStatus').classList.remove('error');
+  }
+  function eirpPower(unit){const e=unit==='W'?eirpW:eirpD,n=toPower(e.value,unit,50);if(!validW(n)){e.setAttribute('aria-invalid','true');return;}e.removeAttribute('aria-invalid');txW=n;renderEirp(unit);}
+  for(const [unit,e] of [['W',eirpW],['dBm',eirpD]]){e.addEventListener('input',()=>eirpPower(unit));e.addEventListener('blur',()=>{if(e.getAttribute('aria-invalid')==='true'){e.removeAttribute('aria-invalid');renderEirp();}else renderEirp();});e.addEventListener('keydown',ev=>{if(ev.key==='Enter')e.blur();});}
+  for(const e of [gain,loss])e.addEventListener('input',()=>renderEirp());
+  renderEirp();
+
+  // RF power ratio P2/P1. Editing a power recomputes delta. Editing delta/factor recomputes P2.
+  let p1=1,p2=.1;
+  const rFields={P1W:$('ratioP1W'),P1Dbm:$('ratioP1Dbm'),P2W:$('ratioP2W'),P2Dbm:$('ratioP2Dbm'),dB:$('ratioDb'),factor:$('ratioX')};
+  function renderRatio(except){
+    const ratio=p1>0?p2/p1:NaN;
+    const db=Number.isFinite(ratio)?(ratio>0?10*Math.log10(ratio):-Infinity):NaN;
+    const m={P1W:fmtLinear(p1),P1Dbm:fmt(toDbm(p1)),P2W:fmtLinear(p2),P2Dbm:fmt(toDbm(p2)),dB:fmt(db),factor:Number.isFinite(ratio)?fmtLinear(ratio):'—'};
+    for(const [k,e] of Object.entries(rFields))if(k!==except)e.value=m[k];
+    if(!Number.isFinite(ratio)){
+      $('ratioOutDb').textContent='—';$('ratioOutX').textContent='—';$('ratioOutPct').textContent='При P₁ = 0 W отношение P₂/P₁ не определено.';
+      $('ratioStatus').textContent='Задайте опорную мощность P₁ больше нуля для вычисления отношения.';$('ratioStatus').classList.add('error');return;
+    }
+    $('ratioOutDb').textContent=fmt(db)+' dB';$('ratioOutX').textContent=fmtLinear(ratio)+' ×';
+    const percent=ratio*100;
+    $('ratioOutPct').textContent='P₂ = '+fmtLinear(percent)+'% от P₁ · '+(ratio===1?'мощности равны':ratio<1?'меньше на '+fmtLinear((1-ratio)*100)+'%':'больше на '+fmtLinear((ratio-1)*100)+'%');
+    $('ratioStatus').textContent='ΔP = P₂ − P₁ (в dBm) = 10 log₁₀(P₂/P₁). Отрицательное значение — ослабление.';$('ratioStatus').classList.remove('error');
+  }
+  function ratioEdit(key){
+    const e=rFields[key];let new1=p1,new2=p2;
+    if(key==='P1W'||key==='P1Dbm')new1=toPower(e.value,key.endsWith('Dbm')?'dBm':'W',50);
+    else if(key==='P2W'||key==='P2Dbm')new2=toPower(e.value,key.endsWith('Dbm')?'dBm':'W',50);
+    else if(key==='dB'){const d=parse(e.value);if(!(d===-Infinity||Number.isFinite(d)&&d>=-300&&d<=300)||p1===0){e.setAttribute('aria-invalid','true');$('ratioStatus').textContent='Для прямого ввода dB нужна P₁ > 0 W; допустимый диапазон −300…+300 dB.';$('ratioStatus').classList.add('error');return;}new2=p1*(d===-Infinity?0:Math.pow(10,d/10));}
+    else if(key==='factor'){const f=parse(e.value);if(!validW(f)||p1===0){e.setAttribute('aria-invalid','true');$('ratioStatus').textContent='Для ввода кратности нужна P₁ > 0 W и неотрицательная кратность.';$('ratioStatus').classList.add('error');return;}new2=p1*f;}
+    if(!validW(new1)||!validW(new2)){
+      e.setAttribute('aria-invalid','true');$('ratioStatus').textContent='Некорректная мощность или переполнение диапазона.';$('ratioStatus').classList.add('error');return;
+    }
+    e.removeAttribute('aria-invalid');p1=new1;p2=new2;renderRatio(key);
+  }
+  for(const [key,e] of Object.entries(rFields)){
+    e.addEventListener('input',()=>ratioEdit(key));
+    e.addEventListener('blur',()=>{if(e.getAttribute('aria-invalid')==='true'){e.removeAttribute('aria-invalid');}renderRatio();});
+    e.addEventListener('keydown',ev=>{if(ev.key==='Enter')e.blur();});
+  }
+  renderRatio();
+})();
+</script>
+<script>
+'use strict';
+(function(){
+  const $=id=>document.getElementById(id);
+  const CONST_BITS={'QPSK':2,'8PSK':3,'8APSK-L':3,'16APSK':4,'16APSK-L':4,'32APSK':5,'32APSK-L':5,'64APSK':6,'64APSK-L':6,'128APSK':7,'256APSK':8,'256APSK-L':8};
+  const S2_RATES={
+    'QPSK':'1/4 1/3 2/5 1/2 3/5 2/3 3/4 4/5 5/6 8/9 9/10',
+    '8PSK':'3/5 2/3 3/4 5/6 8/9 9/10',
+    '16APSK':'2/3 3/4 4/5 5/6 8/9 9/10',
+    '32APSK':'3/4 4/5 5/6 8/9 9/10'
+  };
+  const S_K_N={'1/4':16008,'1/3':21408,'2/5':25728,'1/2':32208,'3/5':38688,'2/3':43040,'3/4':48408,'4/5':51648,'5/6':53840,'8/9':57472,'9/10':58192};
+  const S_K_S={'1/4':3072,'1/3':5232,'2/5':6312,'1/2':7032,'3/5':9552,'2/3':10632,'3/4':11712,'4/5':12432,'5/6':13152,'8/9':14232};
+  const X_K_N={ '13/45':18528,'9/20':28968,'11/20':35448,'5/9':35808,'26/45':37248,'23/36':41208,'25/36':44808,'13/18':46608,'8/15':34368,'28/45':40128,'7/9':50208,'77/90':55248,'32/45':45888,'11/15':47328,'29/45':41568,'31/45':44448,'1/2':32208,'3/5':38688,'2/3':43040,'3/4':48408,'4/5':51648,'5/6':53840};
+  const X_K_S={'14/45':4872,'7/15':7392,'8/15':8472,'26/45':9192,'32/45':11352,'3/5':9552,'2/3':10632};
+  const X_MODES_N={
+    'QPSK':'13/45 9/20 11/20',
+    '8PSK':'23/36 25/36 13/18',
+    '8APSK-L':'5/9 26/45',
+    '16APSK':'26/45 3/5 28/45 23/36 25/36 13/18 7/9 77/90',
+    '16APSK-L':'1/2 8/15 5/9 3/5 2/3',
+    '32APSK':'32/45 11/15 7/9',
+    '32APSK-L':'2/3',
+    '64APSK':'11/15 7/9 4/5 5/6',
+    '64APSK-L':'32/45',
+    '128APSK':'3/4 7/9',
+    '256APSK':'32/45 3/4',
+    '256APSK-L':'29/45 2/3 31/45 11/15'
+  };
+  const X_MODES_S={
+    // Special punctured/shortened 11/45 and 4/15 not included in this conventional PLFRAME model.
+    'QPSK':'14/45 7/15 8/15 32/45',
+    '8PSK':'7/15 8/15 26/45 32/45',
+    '16APSK':'7/15 8/15 26/45 3/5 32/45',
+    '32APSK':'2/3 32/45'
+  };
+  const split=s=>s.split(' ').filter(Boolean);
+  const modes=[];
+  for(const [mod,rateString] of Object.entries(S2_RATES)){
+    for(const rate of split(rateString)){
+      modes.push({system:'S2',mod,frame:'N',rate,k:S_K_N[rate],n:64800});
+      if(S_K_S[rate]!==undefined)modes.push({system:'S2',mod,frame:'S',rate,k:S_K_S[rate],n:16200});
+    }
+  }
+  for(const [frame,sets,map,n] of [['N',X_MODES_N,X_K_N,64800],['S',X_MODES_S,X_K_S,16200]]){
+    for(const [mod,rates] of Object.entries(sets)){
+      for(const rate of split(rates)){
+        let k=map[rate];
+        if(mod==='16APSK-L'&&rate==='2/3')k=43008; // Table 17a uses 20/30, not the legacy 2/3 BCH code.
+        if(mod==='256APSK-L'&&rate==='2/3')k=43008;
+        if(k===undefined)throw Error('Missing normative Kbch: '+mod+' '+rate);
+        modes.push({system:'S2X',mod,rate,frame,k,n,pad:mod==='128APSK'?90:0});
+      }
+    }
+  }
+  const sModes=split('1/2 2/3 3/4 5/6 7/8').map(rate=>({system:'S',mod:'QPSK',rate,frame:'-',k:0,n:0}));
+  const $std=$('modStandard'),$frame=$('modFrame'),$mod=$('modConst'),$fec=$('modFec'),$pilots=$('modPilots'),$roll=$('modRoll'),$rs=$('modSymbol'),$fc=$('modCenter'),$guard=$('modGuard');
+  let currentModes=[];
+  let lastInfo='';
+  function available(){
+    if($std.value==='S')return sModes;
+    return modes.filter(m=>(m.system==='S2'||($std.value==='S2X'&&m.system==='S2X')) && m.frame===$frame.value);
+  }
+  function uniqueOrder(xs){return [...new Set(xs)];}
+  function fill(el,opts,selected){el.textContent='';for(const name of opts){const option=document.createElement('option');option.value=name;option.textContent=name;el.appendChild(option);}if(opts.includes(selected))el.value=selected;else if(opts.length)el.value=opts[0];}
+  function populateMods(keepMod,keepRate){
+    currentModes=available();
+    const mods=uniqueOrder(currentModes.map(m=>m.mod)).sort((a,b)=>(CONST_BITS[a]-CONST_BITS[b]) || a.localeCompare(b));
+    fill($mod,mods,keepMod);
+    populateRates(keepRate);
+  }
+  function populateRates(keepRate){
+    const rates=uniqueOrder(currentModes.filter(m=>m.mod===$mod.value).map(m=>m.rate));
+    const fallback=rates.includes('3/4')?'3/4':rates.includes('2/3')?'2/3':rates[0];
+    fill($fec,rates,rates.includes(keepRate)?keepRate:fallback);
+  }
+  function populateRoll(keep){
+    const list=$std.value==='S'?['0.35']:$std.value==='S2'?['0.20','0.25','0.35']:['0.05','0.10','0.15','0.20','0.25','0.35'];
+    fill($roll,list,list.includes(keep)?keep:($std.value==='S2X'?'0.10':$std.value==='S2'?'0.20':'0.35'));
+  }
+  function updateLocks(){
+    const classic=$std.value==='S';
+    $frame.disabled=classic;$pilots.disabled=classic;
+    $frame.closest('.mod-field').classList.toggle('readonly',classic);
+    $pilots.closest('.mod-field').classList.toggle('readonly',classic);
+    if(classic){$frame.value='N';$pilots.checked=false;}
+    $('modFrameNote').textContent=classic?'Для DVB-S не применяется.':'Normal / Short · выбор влияет на FEC.';
+    $('modPilotsHint').textContent=classic?'В DVB-S отсутствуют.':'36 символов × ⌊(S − 1)/16⌋ в PLFRAME.';
+    $('modPilotsWord').textContent=$pilots.checked?'ON':'OFF';
+  }
+  function refreshStandard(){
+    const priorMod=$mod.value,priorRate=$fec.value,priorRoll=$roll.value;
+    updateLocks();populateMods(priorMod,priorRate);populateRoll(priorRoll);render();
+  }
+  function decimal(x){const t=String(x).trim().replace(/\s/g,'').replace(',','.').replace(/−/g,'-');return t?Number(t):NaN;}
+  const fmt=(n,d=3)=>Number.isFinite(n)?n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:false}):'—';
+  function text(id,value){$(id).textContent=value;}
+  // RF v1.6: sourced AWGN thresholds. Keys: modulation|code-rate; -L variants are separate DVB-S2X constellations.
+  // ETSI EN 302 307-1 Table 13 (normal FECFRAME, PER 1e-7).
+  const S2_ES={
+    QPSK:{'1/4':-2.35,'1/3':-1.24,'2/5':-.30,'1/2':1,'3/5':2.23,'2/3':3.10,'3/4':4.03,'4/5':4.68,'5/6':5.18,'8/9':6.20,'9/10':6.42},
+    '8PSK':{'3/5':5.50,'2/3':6.62,'3/4':7.91,'5/6':9.35,'8/9':10.69,'9/10':10.98},
+    '16APSK':{'2/3':8.97,'3/4':10.21,'4/5':11.03,'5/6':11.61,'8/9':12.89,'9/10':13.13},
+    '32APSK':{'3/4':12.73,'4/5':13.64,'5/6':14.28,'8/9':15.69,'9/10':16.05}
+  };
+  // DVB-S2X ETSI EN 302 307-2 / GOST R 59807-2021 tables A.1 and A.3, FER 1e-5.
+  const X_ES_N={
+    QPSK:{'13/45':-2.03,'9/20':.22,'11/20':1.45},
+    '8APSK-L':{'5/9':4.73,'26/45':5.13},
+    '8PSK':{'23/36':6.12,'25/36':7.02,'13/18':7.49},
+    '16APSK-L':{'1/2':5.97,'8/15':6.55,'5/9':6.84,'3/5':7.41,'2/3':8.43},
+    '16APSK':{'26/45':7.51,'3/5':7.80,'28/45':8.10,'23/36':8.38,'25/36':9.27,'13/18':9.71,'7/9':10.65,'77/90':11.99},
+    '32APSK-L':{'2/3':11.10},
+    '32APSK':{'32/45':11.75,'11/15':12.17,'7/9':13.05},
+    '64APSK-L':{'32/45':13.98},
+    '64APSK':{'11/15':14.81,'7/9':15.47,'4/5':15.87,'5/6':16.55},
+    '128APSK':{'3/4':17.73,'7/9':18.53},
+    '256APSK-L':{'29/45':16.98,'2/3':17.24,'31/45':18.10,'11/15':18.84},
+    '256APSK':{'32/45':18.59,'3/4':19.57}
+  };
+  const X_ES_S={
+    QPSK:{'14/45':-1.46,'7/15':.60,'8/15':1.45,'32/45':3.66},
+    '8PSK':{'7/15':3.83,'8/15':4.71,'26/45':5.52,'32/45':7.54},
+    '16APSK':{'7/15':5.99,'8/15':6.93,'26/45':7.66,'3/5':8.10,'32/45':9.81},
+    '32APSK':{'2/3':11.41,'32/45':12.18}
+  };
+  // DVB-S EN 300 421 Table 3, Eb/N0 requirements at BER 2e-4 after Viterbi;
+  // including implementation margin; conversion to Es/N0 uses net MPEG-TS rate.
+  const S_EB={'1/2':4.5,'2/3':5.0,'3/4':5.5,'5/6':6.0,'7/8':6.4};
+  let rf16NoiseLocation=null;
+  let rf16SpectrumData=null;
+  let rf16Snapshot=null;
+  let rf16ConstIdeal=[];
+  const rf16NS='http://www.w3.org/2000/svg';
+  const rf16El=(name,a={},parent)=>{
+    const el=document.createElementNS(rf16NS,name);
+    for(const [key,v] of Object.entries(a))el.setAttribute(key,String(v));
+    if(parent)parent.appendChild(el);
+    return el;
+  };
+  function rf16Threshold(row,eff){
+    if(row.system==='S')return S_EB[row.rate]+10*Math.log10(eff);
+    if(row.system==='S2'){
+      const v=S2_ES[row.mod]?.[row.rate];
+      return Number.isFinite(v)?v+(row.frame==='S'?.25:0):NaN;
+    }
+    const t=row.frame==='S'?X_ES_S:X_ES_N;
+    return t[row.mod]?.[row.rate]??NaN;
+  }
+  const rf16Q=x=>{
+    // Normal Gaussian Q function: Abramowitz-Stegun 7.1.26, error < ~7.5e-8.
+    const z=Math.abs(x)/Math.sqrt(2),t=1/(1+.3275911*z);
+    const erf=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-z*z);
+    return .5*(1-(x>=0?erf:-erf));
+  };
+  function rf16Points(mod){
+    const m=CONST_BITS[mod]||2,n=2**m;
+    const weak=mod.endsWith('-L');
+    let rings;
+    if(n===4||n===8&&!mod.includes('APSK'))rings=[n];
+    else if(n===8)rings=[2,6];
+    else if(n===16)rings=[4,12];
+    else if(n===32)rings=[4,12,16];
+    else if(n===64)rings=[4,12,20,28];
+    else if(n===128)rings=[8,16,24,36,44];
+    else rings=[16,24,32,40,48,48,48];
+    const pts=[];
+    for(let j=0;j<rings.length;j++){
+      const r=rings.length===1?1:(.24+(j/(rings.length-1))*.76)*(weak?(.92+.08*j/(rings.length-1)):1);
+      for(let i=0;i<rings[j];i++){
+        const angle=2*Math.PI*(i+.5*(j%2))/rings[j]+(n===4?Math.PI/4:n===8&&rings.length===1?Math.PI/8:0);
+        pts.push({x:r*Math.cos(angle),y:r*Math.sin(angle)});
+      }
+    }
+    // Average point energy normalized to Es=1.
+    const rms=Math.sqrt(pts.reduce((a,p)=>a+p.x*p.x+p.y*p.y,0)/pts.length);
+    return pts.map(p=>({x:p.x/rms,y:p.y/rms}));
+  }
+  function rf16BerEstimate(ideal,snr){
+    // Approximate uncoded nearest-neighbour Gray-like bit error bound for illustrative geometry.
+    if(!ideal.length)return NaN;
+    const bits=Math.log2(ideal.length),sigma2=1/snr;
+    let sum=0;
+    for(let i=0;i<ideal.length;i++){
+      let near=Infinity,nearCount=0;
+      for(let j=0;j<ideal.length;j++)if(i!==j){
+        const d2=(ideal[i].x-ideal[j].x)**2+(ideal[i].y-ideal[j].y)**2;
+        if(d2<near*0.99999){near=d2;nearCount=1;}
+        else if(d2<=near*1.02)nearCount++;
+      }
+      sum+=nearCount*rf16Q(Math.sqrt(near*snr/2));
+    }
+    return Math.min(.5,sum/ideal.length/bits);
+  }
+  function rf16BerFmt(p){if(!Number.isFinite(p))return '—';if(p<1e-10)return '<1e⁻¹⁰';const [v,e]=p.toExponential(2).split('e');const superdigits='⁰¹²³⁴⁵⁶⁷⁸⁹';return v+'×10'+(e[0]==='-'?'⁻':'⁺')+String(Math.abs(Number(e))).split('').map(c=>superdigits[Number(c)]).join('');}
+  function rf16Signed(n,d=2){return (n>0?'+':'')+fmt(n,d);}
+  function rf16Fix(id,min,cur,mode='db'){
+    const diff=cur-min;
+    text('rf16'+id+'Min',mode==='ber'?rf16BerFmt(min):fmt(min,mode==='pct'?2:2));
+    text('rf16'+id+'Now',mode==='ber'?rf16BerFmt(cur):fmt(cur,mode==='pct'?2:2));
+    const el=$('rf16'+id+'Diff');
+    el.textContent=mode==='ber'?'модель до FEC':rf16Signed(diff,2)+(mode==='pct'?' п.п.':' dB');
+    el.classList.toggle('rf16-positive',mode==='pct'?diff<=0:diff>=0);
+    el.classList.toggle('rf16-negative',mode==='pct'?diff>0:diff<0);
+  }
+  function rf16UpdateQuality(row,rs,alpha,eff){
+    const min=rf16Threshold(row,eff),rsHz=rs*1e6,bandHz=rsHz*(1+alpha);
+    const control=decimal($('rf16MarginText').value),carrier=decimal($('rf16Carrier').value),rbwk=decimal($('rf16Rbw').value);
+    const ok=Number.isFinite(min)&&Number.isFinite(control)&&control>=-10&&control<=20&&
+      Number.isFinite(carrier)&&carrier>=-180&&carrier<=90&&Number.isFinite(rbwk)&&rbwk>.001&&rbwk<=10000;
+    for(const [id,valid] of [['rf16MarginText',Number.isFinite(control)&&control>=-10&&control<=20],['rf16Carrier',Number.isFinite(carrier)&&carrier>=-180&&carrier<=90],['rf16Rbw',Number.isFinite(rbwk)&&rbwk>.001&&rbwk<=10000]])$(id).setAttribute('aria-invalid',String(!valid));
+    if(!ok){
+      for(const id of ['Es','Cn0','Cnr','Eb','Mer','Evm','Ber'])for(const suffix of ['Min','Now','Diff'])text('rf16'+id+suffix,'—');
+      $('rf16QualityStatus').classList.add('fail');text('rf16QualityStatus','Ошибка: проверяйте запас −10…+20 dB, мощность −180…+90 dBm и RBW 0.001…10000 kHz.');
+      text('rf16SpecStatus','Расчёт спектра недоступен из-за неверных параметров.');$('rf16SpecStatus').classList.add('fail');
+      $('modSpecCurve').setAttribute('d','');$('modSpecFill').setAttribute('d','');
+      $('rf16Constellation').textContent='';rf16Snapshot=null;return;
+    }
+    const es=min+control,cn0min=min+10*Math.log10(rsHz),cnrmin=cn0min-10*Math.log10(bandHz),ebmin=min-10*Math.log10(eff);
+    const evmMin=100*Math.pow(10,-min/20),evmNow=100*Math.pow(10,-es/20);
+    const ideal=rf16Points(row.mod);
+    const berMin=rf16BerEstimate(ideal,Math.pow(10,min/10)),berNow=rf16BerEstimate(ideal,Math.pow(10,es/10));
+    rf16Fix('Es',min,es);rf16Fix('Cn0',cn0min,cn0min+control);rf16Fix('Cnr',cnrmin,cnrmin+control);
+    rf16Fix('Eb',ebmin,ebmin+control);rf16Fix('Mer',min,es);
+    rf16Fix('Evm',evmMin,evmNow,'pct');rf16Fix('Ber',berMin,berNow,'ber');
+    const status=$('rf16QualityStatus');status.classList.toggle('fail',control<0);
+    status.textContent=(control>=0?'РАСЧЁТ В НОРМЕ ·':'НИЖЕ ПОРОГА ·')+' запас Es/N₀ = '+rf16Signed(control)+' dB · '+row.system+' '+row.mod+' '+row.rate+'. '+(row.system==='S2'&&row.frame==='S'?'Short frame: +0.25 dB (оценка).': 'Идеальный AWGN, без дополнительных потерь тракта.');
+    const source=row.system==='S'?'ETSI EN 300 421 §5 (BER после Viterbi = 2×10⁻⁴, QEF после RS); используется преобразование к Es/N₀.':row.system==='S2'?'ETSI EN 302 307-1 Table 13 (PER=10⁻⁷, Normal); Short — ориентировочно +0.25 dB.':'ETSI EN 302 307-2 / ГОСТ Р 59807-2021 Приложение А (FER=10⁻⁵).';
+    text('rf16QualityNote','Источник минимума: '+source+' C/N₀ = Es/N₀ + 10 log₁₀ Rs(Hz); CNR рассчитано для B=Rs(1+α); Eb/N₀ = Es/N₀ − 10 log₁₀(Rполезн/Rs). MER≈Es/N₀ и EVM=100×10^(−MER/20) только для AWGN при нормировке на √Es. BER — приближённая оценка ДО FEC для условного Gray-подобного созвездия; Post-FEC BER здесь не определяется.');
+    const span=decimal($('rf17Span').value);
+    const validSpan=Number.isFinite(span)&&span>=.01&&span<=100000;
+    $('rf17Span').setAttribute('aria-invalid',String(!validSpan));
+    if(validSpan){
+      const spec={fc:decimal($fc.value),rs,alpha,band:rs*(1+alpha),span,es,carrier,rbw:rbwk*1000,mod:row.mod,ideal};
+      rf16Snapshot=spec;
+      drawSpectrum(spec);
+    }else{
+      rf16Snapshot=null;
+      $('modSpecCurve').setAttribute('d','');$('modSpecFill').setAttribute('d','');
+      $('modSpecGrid').textContent='';$('modSpecMarks').textContent='';
+      for(const id of ['rf17Start','rf17Center','rf17Stop','rf17SpanLabel'])text(id,'—');
+      $('rf16SpecStatus').classList.add('fail');
+      text('rf16SpecStatus','Некорректный SPAN: допустимый диапазон от 0.01 до 100000 MHz. Расчёт качества сигнала не изменён.');
+    }
+    rf16DrawConstellation({mod:row.mod,ideal,es},evmNow);
+  }
+  function rf16DrawConstellation(spec,evm){
+    const svg=$('rf16Constellation');svg.textContent='';
+    const clip=rf16El('defs',{},svg),clipPath=rf16El('clipPath',{id:'rf16IqClip'},clip);
+    rf16El('rect',{x:38,y:32,width:448,height:448,rx:8},clipPath);
+    rf16El('rect',{x:0,y:0,width:520,height:520,fill:'#091827'},svg);
+    const x0=262,y0=256,scale=153;
+    for(let v=-1.2;v<=1.201;v+=.3){const p=x0+v*scale,q=y0-v*scale;
+      rf16El('line',{x1:p,y1:32,x2:p,y2:480,stroke:'#29485d','stroke-width':1,'stroke-dasharray':Math.abs(v)<.001?'none':'3 8',opacity:.75},svg);
+      rf16El('line',{x1:38,y1:q,x2:486,y2:q,stroke:'#29485d','stroke-width':1,'stroke-dasharray':Math.abs(v)<.001?'none':'3 8',opacity:.75},svg);
+    }
+    rf16El('rect',{x:38,y:32,width:448,height:448,rx:8,fill:'none',stroke:'#48708c','stroke-width':1.5},svg);
+    const iqAxes=rf16El('g',{},svg);
+    rf16El('line',{x1:38,y1:y0,x2:486,y2:y0,stroke:'#5486a4','stroke-width':1.3},iqAxes);
+    rf16El('line',{x1:x0,y1:32,x2:x0,y2:480,stroke:'#5486a4','stroke-width':1.3},iqAxes);
+    for(const [tx,a] of [['I', {x:493,y:260}],['Q',{x:267,y:23}],['−I',{x:9,y:260}],['−Q',{x:259,y:506}]]){
+      const t=rf16El('text',{...a,fill:'#9bbfd5','font-size':14,'font-weight':800},svg);t.textContent=tx;
+    }
+    const pts=spec.ideal;
+    let seed=96431;
+    const random=()=>{seed=(1664525*seed+1013904223)>>>0;return (seed+.5)/4294967296;};
+    const gaussian=()=>Math.sqrt(-2*Math.log(Math.max(1e-8,random())))*Math.cos(2*Math.PI*random());
+    const sigma=Math.sqrt(1/(2*Math.pow(10,spec.es/10)));
+    const group=rf16El('g',{'clip-path':'url(#rf16IqClip)'},svg);
+    const samples=pts.length<=4?54:pts.length<=8?42:pts.length<=16?29:pts.length<=32?18:pts.length<=64?11:pts.length<=128?7:4;
+    for(const p of pts)for(let t=0;t<samples;t++){
+      const x=x0+(p.x+gaussian()*sigma)*scale,y=y0-(p.y+gaussian()*sigma)*scale;
+      if(x<37||x>487||y<31||y>481)continue;
+      rf16El('circle',{cx:x.toFixed(2),cy:y.toFixed(2),r:pts.length>128?1.5:2.05,fill:'#b2ffdf',opacity:pts.length>64?'.33':'.44'},group);
+    }
+    for(const p of pts){const x=x0+p.x*scale,y=y0-p.y*scale;
+      rf16El('circle',{cx:x.toFixed(2),cy:y.toFixed(2),r:pts.length>64?2.7:3.7,fill:'#81d9ff','fill-opacity':.95,stroke:'#3385b0','stroke-width':.7},group);
+    }
+    text('rf16IqMod',spec.mod);text('rf16IqPts',pts.length+' IQ');text('rf16IqEs',fmt(spec.es,2)+' dB');text('rf16IqEvm',fmt(evm,2)+' %');
+  }
+  function drawSpectrum(spec){
+    const svg=$('modSpectrum'),grid=$('modSpecGrid'),marks=$('modSpecMarks');
+    grid.textContent='';marks.textContent='';
+    const el=(tag,attr={},parent=marks,content)=>{const e=rf16El(tag,attr,parent);if(content!==undefined)e.textContent=content;return e;};
+    const xlo=67,xhi=1032,yt=39,yb=409,center=(xlo+xhi)/2;
+    // The analyzer always uses FC as the exact midpoint of the visible frequency span.
+    // SPAN is full displayed width in MHz; it changes only the horizontal viewport.
+    const dx=spec.span/2;
+    const xAtFreq=v=>center+(v/dx)*(xhi-center);
+    const freqAtX=x=>(x-center)/(xhi-center)*dx;
+    const noise=spec.carrier-(spec.es+10*Math.log10(spec.rs*1e6))+10*Math.log10(spec.rbw);
+    const peakPsd=spec.carrier-10*Math.log10(spec.rs*1e6/spec.rbw);
+    const top=Math.max(noise+11,peakPsd+8),bottom=Math.min(noise-18,peakPsd-21);
+    const yAtDb=v=>yb-(v-bottom)/(top-bottom)*(yb-yt);
+    // Spectrum: raised cosine PSD + flat AWGN noise in linear power. Deterministic small RBW-like variability.
+    let points=[],peakIdx=0;
+    for(let i=0;i<=720;i++){
+      const x=xlo+(xhi-xlo)*i/720,f=freqAtX(x),a=Math.abs(f);
+      const pass=spec.rs*(1-spec.alpha)/2,stop=spec.rs*(1+spec.alpha)/2;
+      const filter=a<=pass?1:a>=stop?0:spec.alpha===0?0:.5*(1+Math.cos(Math.PI*(a-pass)/(spec.rs*spec.alpha)));
+      const gauss=Math.sin(16.7*i+.31)*.58+Math.sin(5.17*i+1.21)*.31+Math.sin(39.71*i+.22)*.25;
+      const jitterDb=2.05*gauss;
+      const linNoise=10**((noise+jitterDb)/10);
+      const linSig=10**(peakPsd/10)*filter;
+      const val=10*Math.log10(linSig+linNoise)+.40*Math.sin(i*.83)*filter;
+      const y=Math.max(yt+1,Math.min(yb-1,yAtDb(val)));
+      points.push({x,y,v:val,f});
+      if(points[i].v>points[peakIdx].v)peakIdx=i;
+    }
+    const curve=points.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+    $('modSpecCurve').setAttribute('d',curve);
+    $('modSpecFill').setAttribute('d',curve+` L${xhi},${yb} L${xlo},${yb} Z`);
+    for(let i=0;i<=10;i++){
+      const xv=xlo+(xhi-xlo)*i/10;
+      el('line',{x1:xv,y1:yt,x2:xv,y2:yb,stroke:i===5?'#7ac1ed':'#2a465a','stroke-width':i===5?1.7:1,'stroke-dasharray':i===5?'8 6':'3 6',opacity:i===5?1:.85},grid);
+      // Linear frequency divisions exactly follow FC ± SPAN/2.
+      const f=spec.fc+(i/10-.5)*spec.span;
+      if(i%2===0)el('text',{x:xv,y:450,fill:i===5?'#b9ecff':'#9bb8cc','text-anchor':'middle','font-size':12,'font-weight':i===5?850:650},grid,fmt(f,spec.span<1?4:spec.span<20?3:2));
+    }
+    for(let i=0;i<=6;i++){
+      const amp=bottom+(top-bottom)*i/6,yy=yAtDb(amp);
+      el('line',{x1:xlo,y1:yy,x2:xhi,y2:yy,stroke:'#314d60','stroke-dasharray':'3 7'},grid);
+      el('text',{x:11,y:yy+4,fill:'#86a9c0','font-size':12},grid,fmt(amp,1));
+    }
+    // The signal's nominal boundaries may be outside the selected span.
+    // In that case do not draw a misleading edge marker at a clipped position.
+    for(const [f,label] of [[-spec.band/2,'LOW'],[0,'FC'],[spec.band/2,'HIGH']]){
+      if(Math.abs(f)>dx+1e-9)continue;
+      const x=xAtFreq(f);
+      if(f!==0)el('line',{x1:x,y1:yt,x2:x,y2:yb,stroke:'#476e8d','stroke-width':1,'stroke-dasharray':'6 7'},grid);
+      el('text',{x,y:23,fill:f===0?'#9fe9ff':'#90b1c9','font-size':13,'font-weight':'850','text-anchor':'middle'},grid,label);
+    }
+    // Noise floor reference in the current RBW.
+    const yNoise=Math.max(yt,Math.min(yb,yAtDb(noise)));
+    el('line',{x1:xlo,y1:yNoise,x2:xhi,y2:yNoise,stroke:'#deb979','stroke-dasharray':'9 7','stroke-width':1.2,opacity:.75},grid);
+    el('text',{x:xlo+6,y:yt+14,fill:'#a4cde2','font-size':11},grid,'dBm / RBW');
+    const m1=points[peakIdx];
+    // Manual M2 tracks an actual frequency in MHz, not a fixed pixel fraction.
+    // If the selected frequency goes off-screen after changing FC or SPAN,
+    // return the marker to a visible automatic noise-probe position.
+    const manualNoise=Number.isFinite(rf16NoiseLocation)&&Math.abs(rf16NoiseLocation-spec.fc)<=dx;
+    if(!manualNoise)rf16NoiseLocation=null;
+    const m2fraction=manualNoise?(rf16NoiseLocation-spec.fc)/spec.span+.5:.93;
+    const m2index=Math.min(720,Math.max(0,Math.round(m2fraction*720)));
+    const m2=points[m2index],delta=m1.v-m2.v;
+    function marker(point,lbl,color,labelBelow=false){
+      const ypoint=point.y;
+      el('line',{x1:point.x,y1:yt,x2:point.x,y2:yb,stroke:color,'stroke-width':1.4,'stroke-dasharray':'4 5',opacity:.75});
+      el('circle',{cx:point.x,cy:ypoint,r:7,fill:'#0c2234',stroke:color,'stroke-width':2.4});
+      el('circle',{cx:point.x,cy:ypoint,r:2.5,fill:color});
+      const label=el('text',{x:Math.max(92,Math.min(990,point.x+12)),y:Math.max(yt+15,Math.min(yb-9,ypoint+(labelBelow?21:-12))),fill:color,'font-size':14,'font-weight':900},marks,lbl);
+    }
+    marker(m1,'M1 PEAK','#91e2ff');marker(m2,'M2 NOISE','#f3c47d',true);
+    el('text',{x:center,y:479,fill:'#b9dceb','text-anchor':'middle','font-size':13,'font-weight':850},marks,
+      'FC '+fmt(spec.fc,3)+' MHz  ·  SPAN '+fmt(spec.span,2)+' MHz  ·  '+fmt(spec.rs,3)+' MBd');
+    text('rf17Start',fmt(spec.fc-dx,3)+' MHz');
+    text('rf17Center',fmt(spec.fc,3)+' MHz');
+    text('rf17Stop',fmt(spec.fc+dx,3)+' MHz');
+    text('rf17SpanLabel',fmt(spec.span,2)+' MHz');
+    text('rf16Peak',fmt(m1.v,2));text('rf16Noise',fmt(m2.v,2));text('rf16Delta',fmt(delta,2));
+    rf16SpectrumData={points,xlo,xhi,noise,peak:peakPsd,m1,m2};
+    rf18Sync();
+    const pureNoise=Math.abs(m2.f)>spec.band/2+spec.rs*.03;
+    const crop=spec.span<spec.band;
+    const specSt=$('rf16SpecStatus');
+    specSt.classList.toggle('fail',!pureNoise||crop);
+    specSt.textContent=(crop?'SPAN УЖЕ ПОЛОСЫ СИГНАЛА — края за пределами обзора. ':'')+
+      (pureNoise?'M2 В ШУМОВОЙ ОБЛАСТИ. ':'M2 В ПОЛОСЕ СИГНАЛА — шумовой маркер содержит мощность сигнала. ')+
+      'M1 − M2 = '+fmt(delta,2)+' dB · RBW '+fmt(spec.rbw/1000,2)+' kHz; средний фон '+fmt(noise,2)+' dBm/RBW.';
+  }
+  function rf16Clear(){for(const id of ['Es','Cn0','Cnr','Eb','Mer','Evm','Ber'])for(const sfx of ['Min','Now','Diff'])text('rf16'+id+sfx,'—');}
+  const rf16Margin=$('rf16Margin'),rf16MarginText=$('rf16MarginText');
+  rf16Margin.addEventListener('input',()=>{rf16MarginText.value=rf16Signed(+rf16Margin.value);render();});
+  rf16MarginText.addEventListener('input',()=>{const n=decimal(rf16MarginText.value);if(Number.isFinite(n)&&n>=-10&&n<=20)rf16Margin.value=String(n);render();});
+  rf16MarginText.addEventListener('blur',()=>{const n=decimal(rf16MarginText.value);if(Number.isFinite(n)&&n>=-10&&n<=20){rf16MarginText.value=rf16Signed(n);render();}});
+  for(const id of ['rf16Carrier','rf16Rbw'])$(id).addEventListener('input',render);
+  $('rf16AutoNoise').addEventListener('click',()=>{rf16NoiseLocation=null;if(rf16Snapshot)drawSpectrum(rf16Snapshot);});
+  // v1.8: horizontal viewport of the full FC-centered spectrum, independent of SPAN.
+  const rf18Scroller=$('rf18SpectrumScroller');
+  const rf18Pan=$('rf18Pan');
+  const rf18Readout=$('rf18PanReadout');
+  let rf18Initialized=false;
+  function rf18MaxScroll(){return Math.max(0,rf18Scroller.scrollWidth-rf18Scroller.clientWidth);}
+  function rf18Sync(){
+    if(!rf18Scroller.clientWidth)return;
+    const max=rf18MaxScroll(),frac=max>1?Math.max(0,Math.min(1,rf18Scroller.scrollLeft/max)):.5;
+    rf18Pan.disabled=max<=1;
+    $('rf18PanLeft').disabled=$('rf18PanRight').disabled=max<=1;
+    $('rf18PanCenter').disabled=max<=1;
+    rf18Pan.value=String(Math.round(frac*1000));
+    rf18Pan.style.setProperty('--rf18-track',(100*frac).toFixed(1)+'%');
+    const spec=rf16Snapshot;
+    if(spec){
+      const graphic=$('modSpectrum'),gwidth=graphic.getBoundingClientRect().width;
+      if(gwidth>0){
+        const scale=gwidth/1100,plotLeft=67,plotRight=1032,center=(plotLeft+plotRight)/2;
+        const fAt=(screenPx)=>spec.fc+((screenPx/scale-center)/(plotRight-plotLeft))*spec.span;
+        const a=Math.max(spec.fc-spec.span/2,fAt(rf18Scroller.scrollLeft));
+        const b=Math.min(spec.fc+spec.span/2,fAt(rf18Scroller.scrollLeft+rf18Scroller.clientWidth));
+        const low=Math.min(a,b),high=Math.max(a,b);
+        rf18Readout.textContent='ВИДИМО: '+low.toFixed(3)+' — '+high.toFixed(3)+' MHz'+(max<=1?' · весь SPAN':' · смещение '+Math.round(frac*100)+'%');
+        rf18Pan.setAttribute('aria-valuetext','Видимая область '+low.toFixed(3)+' — '+high.toFixed(3)+' MHz');
+      }
+    }
+  }
+  function rf18CenterView(){
+    if(!rf18Scroller.clientWidth)return;
+    rf18Scroller.scrollLeft=rf18MaxScroll()/2;
+    rf18Initialized=true;
+    rf18Sync();
+  }
+  rf18Scroller.addEventListener('scroll',rf18Sync,{passive:true});
+  rf18Pan.addEventListener('input',()=>{
+    rf18Scroller.scrollLeft=rf18MaxScroll()*Number(rf18Pan.value)/1000;
+    rf18Sync();
+  });
+  $('rf18PanLeft').addEventListener('click',()=>{rf18Scroller.scrollLeft-=rf18Scroller.clientWidth*.75;rf18Sync();});
+  $('rf18PanRight').addEventListener('click',()=>{rf18Scroller.scrollLeft+=rf18Scroller.clientWidth*.75;rf18Sync();});
+  $('rf18PanCenter').addEventListener('click',rf18CenterView);
+  // Desktop users can drag the graph to pan; short clicks still place M2.
+  let rf18Drag=null,rf18SuppressClick=false;
+  rf18Scroller.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='mouse'||e.button!==0||rf18MaxScroll()<1)return;
+    rf18Drag={id:e.pointerId,x:e.clientX,origin:rf18Scroller.scrollLeft,moved:false};
+  });
+  rf18Scroller.addEventListener('pointermove',e=>{
+    if(!rf18Drag||e.pointerId!==rf18Drag.id)return;
+    const dx=e.clientX-rf18Drag.x;
+    if(!rf18Drag.moved&&Math.abs(dx)>6){
+      rf18Drag.moved=true;
+      rf18Scroller.classList.add('rf18-dragging');
+      rf18Scroller.setPointerCapture(e.pointerId);
+    }
+    if(rf18Drag.moved){rf18Scroller.scrollLeft=rf18Drag.origin-dx;rf18Sync();}
+  });
+  function rf18StopDrag(e){
+    if(!rf18Drag||e.pointerId!==rf18Drag.id)return;
+    if(rf18Drag.moved){rf18SuppressClick=true;setTimeout(()=>{rf18SuppressClick=false;},80);}
+    rf18Drag=null;rf18Scroller.classList.remove('rf18-dragging');
+  }
+  rf18Scroller.addEventListener('pointerup',rf18StopDrag);
+  rf18Scroller.addEventListener('pointercancel',rf18StopDrag);
+  rf18Scroller.addEventListener('click',e=>{
+    if(rf18SuppressClick){e.stopPropagation();e.preventDefault();rf18SuppressClick=false;}
+  },true);
+  window.addEventListener('resize',()=>{
+    if(rf18Scroller.clientWidth){
+      const frac=Number(rf18Pan.value)/1000;
+      rf18Scroller.scrollLeft=rf18MaxScroll()*frac;
+      rf18Sync();
+    }
+  });
+  $('modSpectrum').addEventListener('click',event=>{
+    if(!rf16Snapshot)return;
+    const svg=event.currentTarget,r=svg.getBoundingClientRect();
+    // account for SVG meet letterboxing in unusual container aspect ratios
+    const vw=1100,vh=492,scale=Math.min(r.width/vw,r.height/vh),left=(r.width-vw*scale)/2;
+    const x=(event.clientX-r.left-left)/scale;
+    if(x>=67&&x<=1032){
+      const fraction=(x-67)/(1032-67);
+      rf16NoiseLocation=rf16Snapshot.fc+(fraction-.5)*rf16Snapshot.span;
+      drawSpectrum(rf16Snapshot);
+    }
+  });
+  // SPAN controls change only analyzer zoom; they do not change bitrate or link quality.
+  const rf17Span=$('rf17Span');
+  function rf17AutoSpan(){
+    const rs=decimal($rs.value),alpha=Number($roll.value);
+    if(!Number.isFinite(rs)||rs<=0)return;
+    const target=1.8*rs*(1+alpha);
+    const step=target<10?.5:target<100?5:target<1000?25:100;
+    rf17Span.value=fmt(Math.min(100000,Math.max(.01,Math.ceil(target/step)*step)),2);
+    render();rf18CenterView();
+  }
+  rf17Span.addEventListener('input',()=>{render();rf18CenterView();});
+  rf17Span.addEventListener('blur',()=>{const s=decimal(rf17Span.value);if(Number.isFinite(s)&&s>=.01&&s<=100000)rf17Span.value=fmt(s,2);});
+  rf17Span.addEventListener('keydown',e=>{if(e.key==='Enter')rf17Span.blur();});
+  $('rf17SpanAuto').addEventListener('click',rf17AutoSpan);
+  for(const factor of [0.5,2])$('rf17Span'+(factor===.5?'In':'Out')).addEventListener('click',()=>{
+    const current=decimal(rf17Span.value);
+    if(!Number.isFinite(current)||current<.01||current>100000){rf17AutoSpan();return;}
+    rf17Span.value=fmt(Math.max(.01,Math.min(100000,current*factor)),2);
+    render();rf18CenterView();
+  });
+
+  function render(){
+    const rs=decimal($rs.value),fc=decimal($fc.value),guard=decimal($guard.value),alpha=Number($roll.value);
+    const status=$('modInputStatus');
+    const valid=Number.isFinite(rs)&&rs>0&&rs<=1000&&Number.isFinite(fc)&&fc>0&&fc<=1e9&&Number.isFinite(guard)&&guard>=0&&guard<=100000;
+    for(const [el,ok] of [[$rs,Number.isFinite(rs)&&rs>0&&rs<=1000],[$fc,Number.isFinite(fc)&&fc>0&&fc<=1e9],[$guard,Number.isFinite(guard)&&guard>=0&&guard<=100000]]){
+      el.setAttribute('aria-invalid',String(!ok));
+    }
+    const row=currentModes.find(m=>m.mod===$mod.value&&m.rate===$fec.value);
+    if(!valid||!row){
+      status.classList.add('error');status.innerHTML='<strong>Ошибка параметров.</strong> Symbol Rate: 0 &lt; Rs ≤ 1000 MBd; частота Fc &gt; 0; Guard Interval ≥ 0. Проверьте поля.';
+      for(const id of ['modRate','modBandwidth','modEff','modK','modSymbols','modSe','modEdges','modWithGuard','modBbBits','modOverhead'])text(id,'—');
+      $('modSpecCurve').setAttribute('d','');$('modSpecFill').setAttribute('d','');$('modSpecMarks').textContent='';rf16Clear();$('rf16Constellation').textContent='';return;
+    }
+    let useful,eff,info,bbBits,frameSymbols,slots,pilotCount,schemeBits;
+    const band=rs*(1+alpha);
+    if($std.value==='S'){
+      const [up,down]=row.rate.split('/').map(Number);
+      useful=rs*2*(up/down)*(188/204);
+      eff=useful/rs;slots=0;pilotCount=0;frameSymbols=0;schemeBits=2;bbBits=0;
+      info='DVB-S: QPSK '+row.rate+' · RS(204,188) · без PLFRAME и пилотов.';
+    }else{
+      schemeBits=CONST_BITS[row.mod];
+      // 128APSK: 6 zeros appended to FECFRAME, followed by 84 zero padding bits (90 total).
+      const totalBits=row.n+(row.pad||0);
+      slots=totalBits/(schemeBits*90);
+      if(!Number.isInteger(slots))throw Error('Frame is not aligned to 90-symbol slots: '+row.mod+' '+row.rate);
+      pilotCount=$pilots.checked?Math.floor((slots-1)/16):0;
+      frameSymbols=90*(slots+1)+36*pilotCount;
+      bbBits=row.k-80;
+      eff=bbBits/frameSymbols;
+      useful=rs*eff;
+      info=$std.value+' · '+row.mod+' '+row.rate+' · '+($frame.value==='N'?'Normal':'Short')+' · Pilots '+($pilots.checked?'ON':'OFF')+'.';
+    }
+    $('modPilotsWord').textContent=$pilots.checked?'ON':'OFF';
+    const low=fc-band/2,high=fc+band/2;
+    text('modRate',fmt(useful,4)+' Mbit/s');
+    text('modBandwidth',fmt(band,4)+' MHz');
+    text('modEff',fmt(eff,5)+' bit/sym');
+    text('modK',$std.value==='S'?'Viterbi '+row.rate:row.k.toLocaleString('en-US')+' bit');
+    text('modSymbols',$std.value==='S'?'Не применяется':frameSymbols.toLocaleString('en-US')+' / '+pilotCount+' blk');
+    text('modSe',fmt(useful/band,5)+' bit/s/Hz');
+    text('modEdges',fmt(low,3)+'…'+fmt(high,3)+' MHz');
+    text('modWithGuard',fmt(band+guard,4)+' MHz');
+    text('modBbBits',$std.value==='S'?'188/204 RS':bbBits.toLocaleString('en-US')+' bit');
+    text('modOverhead',$std.value==='S'?'Нет PLFRAME':'90 sym / '+pilotCount*36+' sym');
+    status.classList.toggle('error',low<=0);
+    status.innerHTML=low<=0?'<strong>Проверьте частоту:</strong> нижняя граница расчётного спектра ≤ 0 MHz.': '<strong>РАСЧЁТ В НОРМЕ.</strong> '+info+' Спектр '+fmt(low,3)+'–'+fmt(high,3)+' MHz.';
+    $('modConstNote').textContent='Доступно: '+uniqueOrder(currentModes.map(m=>m.mod)).length+' видов модуляции';
+    $('modFecNote').textContent='Допустимых MODCOD: '+currentModes.length+' в выбранной системе/кадре';
+    rf16UpdateQuality(row,rs,alpha,eff);
+  }
+  $std.addEventListener('change',refreshStandard);
+  $frame.addEventListener('change',()=>{populateMods($mod.value,$fec.value);render();});
+  $mod.addEventListener('change',()=>{populateRates('3/4');render();});
+  for(const e of [$fec,$roll,$pilots])e.addEventListener('change',render);
+  for(const e of [$rs,$fc,$guard]){
+    e.addEventListener('input',render);
+    e.addEventListener('keydown',ev=>{if(ev.key==='Enter')e.blur();});
+  }
+  $fc.addEventListener('input',rf18CenterView);
+  function setDefaults(){
+    $std.value='S2';$frame.value='N';$pilots.checked=true;$rs.value='27.500';$fc.value='11700.000';$guard.value='0.000';rf16Margin.value='3';rf16MarginText.value='+3.00';$('rf16Carrier').value='-42.00';$('rf16Rbw').value='100.00';rf17Span.value='60.00';rf16NoiseLocation=null;
+    updateLocks();populateMods('QPSK','3/4');populateRoll('0.20');render();rf18CenterView();
+  }
+  $('modReset').addEventListener('click',setDefaults);
+  const pPower=$('pagePower'),pMod=$('pageModcod'),navPower=$('navPower'),navMod=$('navModcod');
+  function choose(page,changeHash=false){
+    const mod=page==='modcod';pPower.hidden=mod;pMod.hidden=!mod;
+    navPower.setAttribute('aria-selected',String(!mod));navMod.setAttribute('aria-selected',String(mod));
+    document.body.classList.toggle('mod-theme',mod);
+    if(mod)requestAnimationFrame(()=>{if(!rf18Initialized)rf18CenterView();else rf18Sync();});
+    document.title=(mod?'Frequency & MOD COD':'RF Power Meter')+' · RF Measurement Tools v1.8';
+    if(changeHash){const newHash=mod?'#frequency-modcod':'#rf-power-meter';if(location.hash!==newHash)history.replaceState(null,'',newHash);}
+  }
+  navPower.addEventListener('click',()=>choose('power',true));
+  navMod.addEventListener('click',()=>choose('modcod',true));
+  window.addEventListener('hashchange',()=>choose(location.hash==='#frequency-modcod'?'modcod':'power'));
+  setDefaults();
+  choose(location.hash==='#frequency-modcod'?'modcod':'power');
+})();
+</script>
+
+
+<dialog class="pwa-dialog" id="pwaInstallHelp" aria-labelledby="pwaInstallTitle">
+  <h2 id="pwaInstallTitle">Установка RF Tools</h2>
+  <p>Установите RF Measurement Tools v1.8 на главный экран телефона или на компьютер. После первой загрузки приложение работает автономно, без обращения к серверу за расчётами.</p>
+  <div class="pwa-steps" id="pwaInstallSteps">Откройте приложение через HTTPS или localhost и используйте пункт «Установить» в меню браузера.</div>
+  <p id="pwaInstallNote">Для установки требуется HTTPS (либо localhost). При открытии файла напрямую расчёты работают, но установка и офлайн-кэширование PWA недоступны.</p>
+  <footer><button type="button" id="pwaInstallClose">Закрыть</button></footer>
+</dialog>
+<script>
+/* Optional install UX / offline capability; separate from the canonical RF v1.8 engines. */
+(() => {
+  'use strict';
+  let deferredInstall = null;
+  const install = document.getElementById('pwaInstall');
+  const dialog = document.getElementById('pwaInstallHelp');
+  const steps = document.getElementById('pwaInstallSteps');
+  const note = document.getElementById('pwaInstallNote');
+  const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const secure = location.protocol === 'https:' || ['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+
+  function refreshButton() {
+    if (standalone()) install.hidden = true;
+    else install.hidden = false;
+  }
+  function showInstructions(){
+    if(!secure){
+      steps.textContent = 'Сейчас приложение открыто как локальный файл или по HTTP. Для установки разместите содержимое ZIP на HTTPS-хостинге, откройте адрес сайта и нажмите «Установить».';
+      note.textContent = 'Все инженерные расчёты доступны и при обычном открытии index.html, но сервисный работник (Service Worker) работает только в защищённом контексте.';
+    }else if(ios){
+      steps.textContent = 'На iPhone/iPad: откройте приложение в Safari → «Поделиться» → «На экран Домой» → «Добавить». На новых версиях iOS пункт может находиться внутри списка действий.';
+      note.textContent = 'Первый раз откройте сайт с подключением к интернету, после чего приложение сможет запускаться офлайн.';
+    }else if(/android/i.test(navigator.userAgent)){
+      steps.textContent = 'На Android: откройте сайт в Chrome → меню ⋮ → «Установить приложение» или «Добавить на главный экран». Если установка доступна, кнопка «Установить» вызовет системное приглашение.';
+      note.textContent = 'После первой загрузки основные функции работают без подключения к интернету.';
+    }else{
+      steps.textContent = 'В Chrome или Edge на компьютере: нажмите значок установки в адресной строке либо откройте меню браузера → «Установить RF Measurement Tools». Доступность зависит от браузера.';
+      note.textContent = 'После установки приложение откроется в отдельном окне и сможет запускаться без интернета после первого кэширования.';
+    }
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open','');
+  }
+  install.addEventListener('click', async () => {
+    if (standalone()) return;
+    if (deferredInstall) {
+      const prompt = deferredInstall;
+      deferredInstall = null;
+      try { await prompt.prompt(); await prompt.userChoice; } catch (_) { showInstructions(); }
+      refreshButton();
+    } else showInstructions();
+  });
+  document.getElementById('pwaInstallClose').addEventListener('click', () => {
+    if (typeof dialog.close === 'function') dialog.close();
+    else dialog.removeAttribute('open');
+  });
+  dialog.addEventListener('click', e => { if(e.target === dialog && typeof dialog.close === 'function') dialog.close(); });
+  window.addEventListener('beforeinstallprompt', event => {event.preventDefault();deferredInstall = event;refreshButton();});
+  window.addEventListener('appinstalled',()=>{deferredInstall=null;refreshButton();});
+  window.matchMedia('(display-mode: standalone)').addEventListener?.('change',refreshButton);
+  refreshButton();
+  if('serviceWorker' in navigator && secure){
+    window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(err=>console.warn('PWA offline registration unavailable:',err));});
+  }
+})();
+</script>
+</body>
+</html>

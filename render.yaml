@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: rf-measurement-tools-v18
+    runtime: static
+    buildCommand: mkdir -p public && cp index.html manifest.webmanifest sw.js public/ && cp -r icons public/icons
+    staticPublishPath: ./public
+    autoDeploy: true
+    headers:
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /manifest.webmanifest
+        name: Content-Type
+        value: application/manifest+json
